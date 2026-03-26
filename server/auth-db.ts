@@ -158,6 +158,15 @@ export async function revokeAllUserSessions(userId: number): Promise<void> {
   );
 }
 
+export async function updateSessionTokenHash(sessionId: number, tokenHash: string): Promise<void> {
+  const db = await getDb(); if (!db) throw new Error("DB unavailable");
+  // Validate tokenHash before updating
+  if (!tokenHash || tokenHash.length !== 64) {
+    throw new Error(`Invalid tokenHash format: expected 64-char SHA256 hex, got ${tokenHash?.length ?? 0}`);
+  }
+  await db.update(sessions).set({ tokenHash } as any).where(eq(sessions.id, sessionId));
+}
+
 export async function listUserActiveSessions(userId: number): Promise<Session[]> {
   const db = await getDb(); if (!db) return [];
   return db.select().from(sessions).where(

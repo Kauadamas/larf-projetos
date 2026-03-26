@@ -15,7 +15,7 @@ import {
   suspendUser, deleteUser,
   incrementFailedLogin, resetFailedLogin,
   createInviteToken, findInviteToken, consumeInviteToken, listInviteTokens,
-  createSession, revokeSession, revokeAllUserSessions, listUserActiveSessions,
+  createSession, revokeSession, revokeAllUserSessions, listUserActiveSessions, updateSessionTokenHash,
   createPasswordResetToken, findPasswordResetToken, consumePasswordResetToken,
   writeAudit, getAuditLog, cleanExpiredData,
 } from "./auth-db.js";
@@ -103,33 +103,43 @@ export const authRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: `Conta temporariamente bloqueada. Tente novamente em ${mins} minuto(s).` });
       }
 
-      // Login bem-sucedido — gera token e cria sessão com hash real diretamente
+      // Login bem-sucedido — gera token e cria sessão
       const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MS);
       try {
-        // Usamos sessionId=0 temporariamente só para assinar, depois criamos com o ID real
-        const tempToken  = await signToken({ userId: user.id, role: user.role, sessionId: 0 });
-        if (!tempToken || tempToken.length === 0) {
-          console.error("[Login] Falha: tempToken vazio", { userId: user.id });
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Falha ao gerar token de sessão." });
-        }
-        const tHash      = hashToken(tempToken);
-        console.log("[Login] Token gerado com sucesso, hash:", tHash.slice(0, 8) + "...");
+        // 1. Criar sessão com placeholder hash (será atualizado depois com o hash real)
+        const placeholderHash = "0".repeat(64); // 64 zeros — será sobrescrito
+        const sessionId = await createSession({ 
+          userId: user.id, 
+          tokenHash: placeholderHash, 
+          ipAddress: ip, 
+          userAgent: ua, 
+          expiresAt 
+        });
+        console.log("[Login] Sessão criada com placeholder:", sessionId);
         
-        const sessionId  = await createSession({ userId: user.id, tokenHash: tHash, ipAddress: ip, userAgent: ua, expiresAt });
-        console.log("[Login] Sessão criada:", sessionId);
-        
-        // Token final com o sessionId correto
+        // 2. Gerar token final com o sessionId correto
         const finalToken = await signToken({ userId: user.id, role: user.role, sessionId });
         if (!finalToken || finalToken.length === 0) {
           console.error("[Login] Falha: finalToken vazio", { userId: user.id, sessionId });
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Falha ao gerar token final de sessão." });
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Falha ao gerar token de sessão." });
         }
+        
+        // 3. Fazer hash do token final
+        const finalTokenHash = hashToken(finalToken);
+        console.log("[Login] Token final gerado, hash:", finalTokenHash.slice(0, 8) + "...");
+        
+        // 4. Atualizar sessão com o hash real
+        await updateSessionTokenHash(sessionId, finalTokenHash);
+        console.log("[Login] Hash da sessão atualizado");
 
+        // 5. Resetar tentativas de login e audit
         await resetFailedLogin(user.id, ip);
         await writeAudit({ userId: user.id, action: "login.success", ipAddress: ip, userAgent: ua });
 
+        // 6. Enviar token ao cliente como cookie
         ctx.res.cookie(COOKIE_NAME, finalToken, cookieOptions(ctx.req));
-        console.log("[Login] Login bem-sucedido para usuário:", user.id);
+        console.log("[Login] Login bem-sucedido para usuário:", user.id, "- Token definido como cookie");
+        
         return { user: safeUser(user) };
       } catch (err) {
         console.error("[Login] Erro durante login:", err instanceof Error ? err.message : String(err), { userId: user.id });
@@ -204,22 +214,40 @@ export const authRouter = router({
       await consumeInviteToken(invite.id, userId);
       await writeAudit({ userId, action: "account.created", detail: `convite #${invite.id}`, ipAddress: ip, userAgent: ua });
 
-      // Auto-login após criar conta
+      // Auto-login após criar conta — mesmo fluxo que login
       const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MS);
-      const tempTok   = await signToken({ userId, role: invite.role, sessionId: 0 });
-      if (!tempTok || tempTok.length === 0) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Falha ao gerar token de sessão." });
+      try {
+        // 1. Criar sessão com placeholder hash
+        const placeholderHash = "0".repeat(64);
+        const sessionId = await createSession({ 
+          userId, 
+          tokenHash: placeholderHash, 
+          ipAddress: ip, 
+          userAgent: ua, 
+          expiresAt 
+        });
+        
+        // 2. Gerar token final com sessionId correto
+        const finalToken = await signToken({ userId, role: invite.role, sessionId });
+        if (!finalToken || finalToken.length === 0) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Falha ao gerar token de sessão." });
+        }
+        
+        // 3. Fazer hash do token final
+        const finalTokenHash = hashToken(finalToken);
+        
+        // 4. Atualizar sessão com hash real
+        await updateSessionTokenHash(sessionId, finalTokenHash);
+        
+        // 5. Enviar cookie
+        ctx.res.cookie(COOKIE_NAME, finalToken, cookieOptions(ctx.req));
+        const user = await getUserById(userId);
+        return { user: safeUser(user!) };
+      } catch (err) {
+        console.error("[AcceptInvite] Erro durante auto-login:", err instanceof Error ? err.message : String(err), { userId });
+        if (err instanceof TRPCError) throw err;
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro ao criar sessão. Faça login manualmente." });
       }
-      const tHash     = hashToken(tempTok);
-      const finalSid  = await createSession({ userId, tokenHash: tHash, ipAddress: ip, userAgent: ua, expiresAt });
-      const finalTok  = await signToken({ userId, role: invite.role, sessionId: finalSid });
-      if (!finalTok || finalTok.length === 0) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Falha ao gerar token final de sessão." });
-      }
-
-      ctx.res.cookie(COOKIE_NAME, finalTok, cookieOptions(ctx.req));
-      const user = await getUserById(userId);
-      return { user: safeUser(user!) };
     }),
 
   // ── requestPasswordReset ──────────────────────────────────────────────────────

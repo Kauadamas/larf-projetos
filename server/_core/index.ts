@@ -44,18 +44,31 @@ async function start() {
       try {
         const token = extractToken(req as any);
         if (token) {
+          console.log("[Context] Token encontrado, verificando...");
           const payload = await getSessionFromRequest(req as any);
           if (payload) {
+            console.log("[Context] Payload válido para userId:", payload.userId);
             // Validate session still exists and not revoked
             const tokenHash = hashToken(token);
             const session = await findSession(tokenHash);
             if (session) {
+              console.log("[Context] Sessão encontrada #", session.id);
               user = await getUserById(payload.userId);
               sessionId = session.id;
+              console.log("[Context] Usuário carregado:", user?.email, "status:", user?.status);
               // Suspended users get null
-              if (user?.status === "suspended") user = null;
+              if (user?.status === "suspended") {
+                console.log("[Context] Usuário suspenso");
+                user = null;
+              }
+            } else {
+              console.log("[Context] Sessão NÃO encontrada para hash", tokenHash.slice(0, 8) + "...");
             }
+          } else {
+            console.log("[Context] Token inválido ou expirado");
           }
+        } else {
+          console.log("[Context] Sem token");
         }
       } catch (e) {
         console.error("[Context]", e);

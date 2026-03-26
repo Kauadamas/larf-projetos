@@ -209,3 +209,314 @@ export function KanbanCol({ title, color, count, children, onAdd }: { title: str
     </div>
   );
 }
+
+// ─── Skeleton Loaders ─────────────────────────────────────────────────────────
+export function SkeletonCard() {
+  return (
+    <div className="kpi-card animate-pulse">
+      <div className="skeleton skeleton-title" />
+      <div className="skeleton skeleton-text" />
+      <div className="skeleton skeleton-text h-[10px]" />
+    </div>
+  );
+}
+
+export function SkeletonRow() {
+  return (
+    <tr>
+      <td colSpan={5} className="px-4 py-3">
+        <div className="space-y-2">
+          <div className="skeleton skeleton-text" />
+          <div className="skeleton skeleton-text h-[10px]" />
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+// ─── Enhanced Data Table with Features ────────────────────────────────────────
+export function DataTable({
+  columns,
+  data,
+  isLoading,
+  onRowClick,
+}: {
+  columns: Array<{ key: string; label: string; width?: string }>;
+  data: any[];
+  isLoading?: boolean;
+  onRowClick?: (row: any) => void;
+}) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="data-table">
+        <thead>
+          <tr>
+            {columns.map(col => (
+              <th key={col.key} style={{ width: col.width }}>
+                {col.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {isLoading ? (
+            <>
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </>
+          ) : data.length ? (
+            data.map((row, i) => (
+              <tr key={i} onClick={() => onRowClick?.(row)} style={{ cursor: onRowClick ? "pointer" : "default" }}>
+                {columns.map(col => (
+                  <td key={col.key}>{row[col.key]}</td>
+                ))}
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={columns.length} className="text-center py-8" style={{ color: "var(--muted)" }}>
+                Sem dados
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ─── Tabs ─────────────────────────────────────────────────────────────────────
+interface TabsProps {
+  tabs: Array<{ id: string; label: string; icon?: any }>;
+  active: string;
+  onChange: (id: string) => void;
+}
+
+export function Tabs({ tabs, active, onChange }: TabsProps) {
+  return (
+    <div className="flex gap-2 border-b" style={{ borderColor: "rgba(59,130,246,.1)" }}>
+      {tabs.map(tab => {
+        const Icon = tab.icon;
+        return (
+          <button
+            key={tab.id}
+            onClick={() => onChange(tab.id)}
+            className="px-4 py-3 text-sm font-medium transition-all relative group"
+            style={{
+              color: active === tab.id ? "var(--accent)" : "var(--muted)",
+              borderBottom: active === tab.id ? "2px solid var(--accent)" : "2px solid transparent",
+            }}
+          >
+            <div className="flex items-center gap-2">
+              {Icon && <Icon size={16} />}
+              {tab.label}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+export function Pagination({
+  page,
+  total,
+  pageSize,
+  onPageChange,
+}: {
+  page: number;
+  total: number;
+  pageSize: number;
+  onPageChange: (p: number) => void;
+}) {
+  const totalPages = Math.ceil(total / pageSize);
+  return (
+    <div className="flex items-center justify-between py-3 px-4 rounded-lg" style={{ background: "rgba(59,130,246,.05)" }}>
+      <span className="text-xs" style={{ color: "var(--muted)" }}>
+        Página {page} de {totalPages} ({total} total)
+      </span>
+      <div className="flex gap-1">
+        <button
+          onClick={() => onPageChange(page - 1)}
+          disabled={page === 1}
+          className="px-2 py-1.5 rounded text-xs font-medium transition-all"
+          style={{
+            background: page === 1 ? "rgba(59,130,246,.05)" : "var(--surface2)",
+            color: page === 1 ? "var(--muted)" : "var(--text)",
+            opacity: page === 1 ? 0.5 : 1,
+            cursor: page === 1 ? "not-allowed" : "pointer",
+          }}
+        >
+          ← Anterior
+        </button>
+        <button
+          onClick={() => onPageChange(page + 1)}
+          disabled={page >= totalPages}
+          className="px-2 py-1.5 rounded text-xs font-medium transition-all"
+          style={{
+            background: page >= totalPages ? "rgba(59,130,246,.05)" : "var(--surface2)",
+            color: page >= totalPages ? "var(--muted)" : "var(--text)",
+            opacity: page >= totalPages ? 0.5 : 1,
+            cursor: page >= totalPages ? "not-allowed" : "pointer",
+          }}
+        >
+          Próxima →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Alert Card ───────────────────────────────────────────────────────────────
+interface AlertProps {
+  type: "info" | "success" | "warning" | "error";
+  title: string;
+  message: string;
+  action?: { label: string; onClick: () => void };
+}
+
+export function Alert({ type, title, message, action }: AlertProps) {
+  const config = {
+    info: { bg: "rgba(59,130,246,.1)", border: "rgba(59,130,246,.2)", icon: "ℹ️", color: "var(--accent)" },
+    success: { bg: "rgba(34,197,94,.1)", border: "rgba(34,197,94,.2)", icon: "✓", color: "var(--green)" },
+    warning: { bg: "rgba(245,158,11,.1)", border: "rgba(245,158,11,.2)", icon: "⚠️", color: "var(--yellow)" },
+    error: { bg: "rgba(239,68,68,.1)", border: "rgba(239,68,68,.2)", icon: "✕", color: "var(--red)" },
+  };
+  const c = config[type];
+  return (
+    <div className="p-4 rounded-lg border flex items-start gap-3" style={{ background: c.bg, borderColor: c.border }}>
+      <span className="text-xl flex-shrink-0">{c.icon}</span>
+      <div className="flex-1">
+        <h4 className="text-sm font-semibold mb-1" style={{ color: c.color }}>
+          {title}
+        </h4>
+        <p className="text-sm" style={{ color: "var(--muted)" }}>
+          {message}
+        </p>
+      </div>
+      {action && (
+        <button onClick={action.onClick} className="text-xs font-medium px-3 py-1.5 rounded transition-all" style={{ background: c.bg, color: c.color }}>
+          {action.label}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── Progress Bar ─────────────────────────────────────────────────────────────
+export function ProgressBar({ value, max = 100, label, color }: { value: number; max?: number; label?: string; color?: string }) {
+  const percentage = (value / max) * 100;
+  return (
+    <div>
+      {label && (
+        <div className="flex items-center justify-between mb-2 text-xs">
+          <span style={{ color: "var(--text)" }}>{label}</span>
+          <span style={{ color: "var(--muted)" }}>
+            {value} / {max}
+          </span>
+        </div>
+      )}
+      <div className="h-2 rounded-full overflow-hidden" style={{ background: "var(--surface2)" }}>
+        <div
+          className="h-full transition-all"
+          style={{
+            width: `${Math.min(percentage, 100)}%`,
+            background: color || "var(--accent)",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ─── Avatar ───────────────────────────────────────────────────────────────────
+export function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" | "lg" }) {
+  const sizeMap = { sm: "w-6 h-6 text-xs", md: "w-8 h-8 text-sm", lg: "w-10 h-10 text-base" };
+  const initials = name
+    .split(" ")
+    .map(w => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+  return (
+    <div
+      className={`${sizeMap[size]} rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0`}
+      style={{
+        background: `linear-gradient(135deg, var(--accent) 0%, #00d9ff 100%)`,
+      }}
+    >
+      {initials}
+    </div>
+  );
+}
+
+// ─── Tag Component ────────────────────────────────────────────────────────────
+interface TagProps extends React.HTMLAttributes<HTMLDivElement> {
+  label: string;
+  variant?: "primary" | "secondary" | "outline";
+  onRemove?: () => void;
+}
+
+export function Tag({ label, variant = "secondary", onRemove, ...props }: TagProps) {
+  const styles = {
+    primary: { bg: "var(--accent)", text: "white" },
+    secondary: { bg: "rgba(59,130,246,.1)", text: "var(--accent)" },
+    outline: { bg: "transparent", text: "var(--accent)", border: "1px solid var(--accent)" },
+  };
+  const s = styles[variant];
+  return (
+    <div
+      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:opacity-80"
+      style={{ background: s.bg, color: s.text, border: (s as any).border || "none" }}
+      {...props}
+    >
+      {label}
+      {onRemove && (
+        <button onClick={onRemove} className="ml-1 hover:opacity-70">
+          ✕
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── Stats Grid ───────────────────────────────────────────────────────────────
+export function StatsGrid({
+  stats,
+  isLoading,
+}: {
+  stats: Array<{ label: string; value: string | number; color?: string; icon?: any }>;
+  isLoading?: boolean;
+}) {
+  return (
+    <div className="stats-row">
+      {isLoading ? (
+        <>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </>
+      ) : (
+        stats.map((stat, i) => {
+          const Icon = stat.icon;
+          return (
+            <div key={i} className="kpi-card">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <h4 style={{ color: "var(--muted)" }}>{stat.label}</h4>
+                  <div className="value" style={{ color: stat.color || "var(--text)" }}>
+                    {stat.value}
+                  </div>
+                </div>
+                {Icon && <Icon size={20} style={{ color: stat.color || "var(--muted)", opacity: 0.5 }} />}
+              </div>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}

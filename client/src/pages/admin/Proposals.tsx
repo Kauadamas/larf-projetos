@@ -2,7 +2,7 @@ import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
 import { fmtCurrency, fmtDate } from "../../lib/utils";
-import { Card, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, KpiCard } from "../../components/UI";
+import { PageHeader, Card, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState } from "../../components/UI";
 
 type Item = { desc: string; qty: number; unit: string; value: number };
 type FormData = { title: string; clientId: string; projectId: string; status: string; validityDays: string; discount: string; notes: string };
@@ -26,21 +26,6 @@ export default function Proposals() {
   const del = trpc.proposals.delete.useMutation({ onSuccess: () => { toast.success("Excluída."); utils.proposals.list.invalidate(); } });
 
   const clientMap = Object.fromEntries(clients.map(c => [c.id, c.name]));
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-
-  const filteredProposals = proposals.filter(p => {
-    const matchesSearch = !searchTerm || p.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || p.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const stats = {
-    total: proposals.length,
-    rascunho: proposals.filter(p => p.status === "rascunho").length,
-    enviada: proposals.filter(p => p.status === "enviada").length,
-    aprovada: proposals.filter(p => p.status === "aprovada").reduce((s, p) => s + Number(p.total || 0), 0),
-  };
 
   function openCreate() {
     setEditId(null); setForm(empty); setItems([{ desc: "", qty: 1, unit: "serviço", value: 0 }]); setModal(true);
@@ -76,53 +61,19 @@ export default function Proposals() {
 
   return (
     <div className="p-6 max-w-7xl">
-      {/* Hero Section */}
-      <div style={{ background: `linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))` }} className="rounded-2xl p-6 pt-8 mb-6 border border-blue-500/20">
-        <h1 className="text-2xl font-bold mb-1">Propostas Comerciais</h1>
-        <div style={{ color: "var(--muted)" }} className="text-sm mb-4">Gerenciador de propostas, orçamentos e cotações</div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <KpiCard label="Total" value={stats.total} color="var(--blue)" />
-          <KpiCard label="Rascunhos" value={stats.rascunho} color="var(--muted2)" />
-          <KpiCard label="Enviadas" value={stats.enviada} color="var(--accent)" />
-          <KpiCard label="Aprovadas" value={fmtCurrency(stats.aprovada)} color="var(--green)" />
-        </div>
-      </div>
-
-      {/* Search & Filter */}
-      <div className="flex items-center gap-3 mb-6 flex-wrap">
-        <input
-          type="text"
-          placeholder="Buscar proposta..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          className="flex-1 min-w-64 px-4 py-2 rounded-lg text-sm transition-all"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
-        />
-        <select
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-          className="w-48 px-3 py-2 rounded-lg text-sm"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
-        >
-          <option value="">Todos os status</option>
-          <option value="rascunho">Rascunho</option>
-          <option value="enviada">Enviada</option>
-          <option value="aprovada">Aprovada</option>
-          <option value="recusada">Recusada</option>
-          <option value="vencida">Vencida</option>
-        </select>
+      <PageHeader title="Propostas" count={proposals.length}>
         <Button variant="primary" onClick={openCreate}>+ Nova Proposta</Button>
-      </div>
+      </PageHeader>
 
       <Card>
-        {filteredProposals.length ? (
+        {proposals.length ? (
           <Table>
             <thead><tr><Th>Título</Th><Th>Cliente</Th><Th>Total</Th><Th>Validade</Th><Th>Status</Th><Th></Th></tr></thead>
             <tbody>
-              {filteredProposals.map(p => (
+              {proposals.map(p => (
                 <Tr key={p.id}>
                   <Td><span className="font-semibold text-sm">{p.title}</span></Td>
-                  <Td><span className="text-sm" style={{ color: "var(--muted)" }}>{clientMap[p.clientId ?? 0] || "—"}</span></Td>
+                  <Td><span className="text-sm" style={{ color: "var(--text-lo)" }}>{clientMap[p.clientId ?? 0] || "—"}</span></Td>
                   <Td><span className="font-mono text-sm" style={{ color: "var(--green)" }}>{fmtCurrency(p.total)}</span></Td>
                   <Td><span className="text-sm">{fmtDate(p.createdAt ? new Date(new Date(p.createdAt).getTime() + (p.validityDays || 15) * 86400000).toISOString().split("T")[0] : undefined)}</span></Td>
                   <Td><Badge status={p.status} /></Td>
@@ -138,8 +89,8 @@ export default function Proposals() {
             </tbody>
           </Table>
         ) : (
-          <EmptyState icon="📄" title={searchTerm || statusFilter ? "Nenhuma proposta encontrada" : "Nenhuma proposta criada ainda"}
-            action={<Button variant="primary" onClick={openCreate}>+ Criar Proposta</Button>} />
+          <EmptyState icon="📄" title="Nenhuma proposta criada ainda"
+            action={<Button variant="primary" onClick={openCreate}>+ Criar Primeira Proposta</Button>} />
         )}
       </Card>
 
@@ -170,7 +121,7 @@ export default function Proposals() {
 
         {/* Items */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: "var(--muted2)", fontSize: "10px" }}>Itens da Proposta</label>
+          <label className="block text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: "var(--text-lo)", fontSize: "10px" }}>Itens da Proposta</label>
           <div className="space-y-2">
             {items.map((item, i) => (
               <div key={i} className="grid gap-2" style={{ gridTemplateColumns: "1fr 60px 80px 100px 30px" }}>
@@ -184,7 +135,7 @@ export default function Proposals() {
             ))}
             <button onClick={() => setItems(prev => [...prev, { desc: "", qty: 1, unit: "serviço", value: 0 }])}
               className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
-              style={{ border: "1.5px dashed var(--border)", color: "var(--muted)", background: "none" }}>
+              style={{ border: "1.5px dashed var(--border)", color: "var(--text-lo)", background: "none" }}>
               + Adicionar Item
             </button>
           </div>
@@ -192,11 +143,11 @@ export default function Proposals() {
 
         <div className="flex flex-col gap-2 items-end pt-2" style={{ borderTop: "1px solid var(--border)" }}>
           <div className="flex items-center gap-6 text-sm">
-            <span style={{ color: "var(--muted)" }}>Subtotal</span>
+            <span style={{ color: "var(--text-lo)" }}>Subtotal</span>
             <span className="font-mono">{fmtCurrency(subtotal)}</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm" style={{ color: "var(--muted)" }}>Desconto (R$)</span>
+            <span className="text-sm" style={{ color: "var(--text-lo)" }}>Desconto (R$)</span>
             <Input type="number" value={form.discount} onChange={set("discount")} className="w-28 text-sm" />
           </div>
           <div className="flex items-center gap-6 font-bold">
@@ -218,9 +169,9 @@ export default function Proposals() {
           return (
             <div className="space-y-4">
               <div className="flex flex-wrap gap-6">
-                <div><div className="text-xs font-semibold" style={{ color: "var(--muted)" }}>CLIENTE</div><div className="font-bold mt-0.5">{clientMap[viewData.clientId ?? 0] || "—"}</div></div>
-                <div><div className="text-xs font-semibold" style={{ color: "var(--muted)" }}>STATUS</div><div className="mt-0.5"><Badge status={viewData.status} /></div></div>
-                <div><div className="text-xs font-semibold" style={{ color: "var(--muted)" }}>VALIDADE</div><div className="text-sm mt-0.5">{viewData.validityDays} dias</div></div>
+                <div><div className="text-xs font-semibold" style={{ color: "var(--text-lo)" }}>CLIENTE</div><div className="font-bold mt-0.5">{clientMap[viewData.clientId ?? 0] || "—"}</div></div>
+                <div><div className="text-xs font-semibold" style={{ color: "var(--text-lo)" }}>STATUS</div><div className="mt-0.5"><Badge status={viewData.status} /></div></div>
+                <div><div className="text-xs font-semibold" style={{ color: "var(--text-lo)" }}>VALIDADE</div><div className="text-sm mt-0.5">{viewData.validityDays} dias</div></div>
               </div>
               <div style={{ borderTop: "1px solid var(--border)" }} className="pt-3">
                 <Table>
@@ -239,14 +190,14 @@ export default function Proposals() {
                 </Table>
               </div>
               <div className="flex flex-col items-end gap-2 pt-2" style={{ borderTop: "1px solid var(--border)" }}>
-                <div className="flex gap-8 text-sm"><span style={{ color: "var(--muted)" }}>Subtotal</span><span className="font-mono">{fmtCurrency(sub)}</span></div>
-                {disc > 0 && <div className="flex gap-8 text-sm"><span style={{ color: "var(--muted)" }}>Desconto</span><span className="font-mono text-red-400">- {fmtCurrency(disc)}</span></div>}
+                <div className="flex gap-8 text-sm"><span style={{ color: "var(--text-lo)" }}>Subtotal</span><span className="font-mono">{fmtCurrency(sub)}</span></div>
+                {disc > 0 && <div className="flex gap-8 text-sm"><span style={{ color: "var(--text-lo)" }}>Desconto</span><span className="font-mono text-red-400">- {fmtCurrency(disc)}</span></div>}
                 <div className="flex gap-8 font-bold"><span>Total</span><span className="font-mono text-xl" style={{ color: "var(--green)" }}>{fmtCurrency(Number(viewData.total))}</span></div>
               </div>
-              {viewData.notes && <div className="rounded-lg p-3 text-sm" style={{ background: "var(--surface2)", color: "var(--muted)" }}>{viewData.notes}</div>}
+              {viewData.notes && <div className="rounded-lg p-3 text-sm" style={{ background: "var(--bg-overlay)", color: "var(--text-lo)" }}>{viewData.notes}</div>}
             </div>
           );
-        })() : <div className="text-sm py-8 text-center" style={{ color: "var(--muted)" }}>Carregando...</div>}
+        })() : <div className="text-sm py-8 text-center" style={{ color: "var(--text-lo)" }}>Carregando...</div>}
       </Modal>
     </div>
   );

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { fmtCurrency } from "../../lib/utils";
 import { Card, CardHeader, CardTitle, CardBody, Table, Th, Td, Tr, Badge, KpiCard } from "../../components/UI";
@@ -40,13 +39,11 @@ export default function Reports() {
 
   return (
     <div className="p-6 max-w-7xl">
-      {/* Hero Section */}
-      <div style={{ background: `linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.1))` }} className="rounded-2xl p-6 pt-8 mb-6 border border-green-500/20">
-        <h1 className="text-2xl font-bold mb-1">Relatórios Financeiros</h1>
-        <div style={{ color: "var(--muted)" }} className="text-sm mb-4">Análise completa de receita, despesa, lucratividade e performance</div>
+      <div className="mb-5">
+        <h1 className="text-xl font-bold">Relatórios</h1>
+        <p className="text-sm mt-0.5" style={{ color: "var(--text-lo)" }}>Análise completa da operação LARF</p>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <KpiCard label="Receita Total" value={fmtCurrency(recebido)} color="var(--green)" />
         <KpiCard label="Despesas Totais" value={fmtCurrency(totalExp)} color="var(--red)" />
@@ -54,8 +51,7 @@ export default function Reports() {
         <KpiCard label="R$/hora Médio" value={fmtCurrency(avgRate)} sub={`${totalHours.toFixed(1)}h registradas`} color="var(--accent)" />
       </div>
 
-      {/* Two Column Section: Revenue & Expenses */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 animation-fade-in" style={{ animationDelay: "0.1s" }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <Card>
           <CardHeader><CardTitle>Receita por Cliente</CardTitle></CardHeader>
           {clientRevenue.length ? (
@@ -69,17 +65,17 @@ export default function Reports() {
                     <Td><span className="font-mono text-sm" style={{ color: "var(--green)" }}>{fmtCurrency(c.revenue)}</span></Td>
                     <Td>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1.5 rounded-full" style={{ background: "var(--surface2)", width: "60px" }}>
+                        <div className="flex-1 h-1.5 rounded-full" style={{ background: "var(--bg-overlay)", width: "60px" }}>
                           <div className="h-full rounded-full" style={{ background: "var(--green)", width: `${Math.round(c.revenue / recebido * 100)}%` }} />
                         </div>
-                        <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>{Math.round(c.revenue / recebido * 100)}%</span>
+                        <span className="text-xs font-mono" style={{ color: "var(--text-lo)" }}>{Math.round(c.revenue / recebido * 100)}%</span>
                       </div>
                     </Td>
                   </Tr>
                 ))}
               </tbody>
             </Table>
-          ) : <CardBody><p className="text-sm text-center py-6" style={{ color: "var(--muted)" }}>Nenhuma receita registrada ainda</p></CardBody>}
+          ) : <CardBody><p className="text-sm text-center py-6" style={{ color: "var(--text-lo)" }}>Nenhuma receita registrada ainda</p></CardBody>}
         </Card>
 
         <Card>
@@ -93,20 +89,19 @@ export default function Reports() {
                       <span className="text-sm font-medium">{cat}</span>
                       <span className="font-mono text-sm" style={{ color: "var(--red)" }}>- {fmtCurrency(val)}</span>
                     </div>
-                    <div className="h-1.5 rounded-full" style={{ background: "var(--surface2)" }}>
+                    <div className="h-1.5 rounded-full" style={{ background: "var(--bg-overlay)" }}>
                       <div className="h-full rounded-full" style={{ background: "var(--red)", opacity: 0.65, width: `${Math.round(val / totalExp * 100)}%` }} />
                     </div>
                   </div>
                 ))}
               </div>
-            ) : <p className="text-sm py-6 text-center" style={{ color: "var(--muted)" }}>Nenhuma despesa registrada</p>}
+            ) : <p className="text-sm py-6 text-center" style={{ color: "var(--text-lo)" }}>Nenhuma despesa registrada</p>}
           </CardBody>
         </Card>
       </div>
 
-      {/* Project Analysis */}
-      <Card className="animation-fade-in" style={{ animationDelay: "0.2s" }}>
-        <CardHeader><CardTitle>Análise Detalhada por Projeto</CardTitle></CardHeader>
+      <Card>
+        <CardHeader><CardTitle>Análise por Projeto</CardTitle></CardHeader>
         <Table>
           <thead><tr><Th>Projeto</Th><Th>Status</Th><Th>Valor Contratado</Th><Th>Receita Recebida</Th><Th>Horas</Th><Th>R$/hora</Th></tr></thead>
           <tbody>
@@ -117,10 +112,10 @@ export default function Reports() {
                 <Td><span className="font-mono text-sm">{fmtCurrency(p.value)}</span></Td>
                 <Td><span className="font-mono text-sm" style={{ color: "var(--green)" }}>{fmtCurrency(p.revenue)}</span></Td>
                 <Td><span className="font-mono text-sm">{p.hours.toFixed(1)}h</span></Td>
-                <Td><span className="font-mono text-sm" style={{ color: p.rate > 0 ? "var(--accent)" : "var(--muted)" }}>{p.rate > 0 ? fmtCurrency(p.rate) + "/h" : "—"}</span></Td>
+                <Td><span className="font-mono text-sm" style={{ color: p.rate > 0 ? "var(--accent)" : "var(--text-lo)" }}>{p.rate > 0 ? fmtCurrency(p.rate) + "/h" : "—"}</span></Td>
               </Tr>
             )) : (
-              <tr><td colSpan={6}><p className="text-sm text-center py-8" style={{ color: "var(--muted)" }}>Nenhum projeto registrado</p></td></tr>
+              <tr><td colSpan={6}><p className="text-sm text-center py-8" style={{ color: "var(--text-lo)" }}>Nenhum projeto registrado</p></td></tr>
             )}
           </tbody>
         </Table>

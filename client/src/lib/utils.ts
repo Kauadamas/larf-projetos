@@ -1,36 +1,49 @@
 export const fmtCurrency = (v: number | string | null | undefined) =>
   "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export const fmtDate = (d: string | null | undefined) =>
-  d ? new Date(d + "T12:00").toLocaleDateString("pt-BR") : "—";
+export const fmtDate = (d: string | Date | null | undefined) => {
+  if (!d) return "—";
+  const date = typeof d === "string" ? new Date(d + (d.length === 10 ? "T12:00" : "")) : d;
+  return date.toLocaleDateString("pt-BR");
+};
 
 export const today = () => new Date().toISOString().split("T")[0];
 
 export const isOverdue = (d: string | null | undefined) =>
   !!d && new Date(d) < new Date(today());
 
-export function cn(...classes: (string | undefined | null | false)[]) {
-  return classes.filter(Boolean).join(" ");
-}
-
-type StatusKey = string;
-const BADGE_CLASSES: Record<StatusKey, string> = {
-  ativo: "badge-green", inativo: "badge-gray", lead: "badge-blue",
-  em_andamento: "badge-blue", concluido: "badge-green", pausado: "badge-yellow", cancelado: "badge-gray",
-  aprovada: "badge-green", recusada: "badge-red", enviada: "badge-blue", rascunho: "badge-gray", vencida: "badge-orange",
-  recebido: "badge-green", pendente: "badge-yellow", vencido: "badge-red", cancelado2: "badge-gray",
-  todo: "badge-gray", doing: "badge-blue", review: "badge-yellow", done: "badge-green",
-  alta: "badge-red", media: "badge-yellow", baixa: "badge-gray", urgente: "badge-red",
-  proposta: "badge-blue", negociacao: "badge-yellow", ganho: "badge-green", perdido: "badge-red", contato: "badge-blue",
+export const relativeDate = (d: string | Date) => {
+  const date = typeof d === "string" ? new Date(d) : d;
+  const diff = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (diff < 60) return "agora";
+  if (diff < 3600) return `${Math.floor(diff / 60)}min atrás`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`;
+  return `${Math.floor(diff / 86400)}d atrás`;
 };
 
-const BADGE_LABELS: Record<StatusKey, string> = {
-  em_andamento: "Em Andamento", concluido: "Concluído", todo: "A Fazer",
-  doing: "Em Andamento", review: "Em Revisão", done: "Concluído",
-  alta: "Alta", media: "Média", baixa: "Baixa", urgente: "Urgente",
-  negociacao: "Negociação", proposta: "Proposta", ganho: "Ganho", perdido: "Perdido",
-  vencida: "Vencida", vencido: "Vencido",
+// Badge class returns just the color suffix (e.g., "green", "red")
+const BADGE_CLASS: Record<string, string> = {
+  ativo: "green", inativo: "gray", lead: "blue", suspense: "gray",
+  em_andamento: "blue", concluido: "green", pausado: "yellow", cancelado: "gray",
+  aprovada: "green", recusada: "red", enviada: "blue", rascunho: "gray", vencida: "orange",
+  recebido: "green", pendente: "yellow", vencido: "red",
+  todo: "gray", doing: "blue", review: "yellow", done: "green",
+  baixa: "gray", media: "yellow", alta: "red", urgente: "red",
+  proposta: "blue", negociacao: "yellow", ganho: "green", perdido: "red", contato: "blue",
+  active: "green", pending: "yellow", suspended: "red",
+  viewer: "gray", member: "blue", admin: "purple", superadmin: "accent",
 };
 
-export function getBadgeClass(s: string) { return BADGE_CLASSES[s] || "badge-gray"; }
-export function getBadgeLabel(s: string) { return BADGE_LABELS[s] || s; }
+const BADGE_LABEL: Record<string, string> = {
+  em_andamento: "Em Andamento", concluido: "Concluído", pausado: "Pausado", cancelado: "Cancelado",
+  todo: "A Fazer", doing: "Em Andamento", review: "Em Revisão", done: "Concluído",
+  baixa: "Baixa", media: "Média", alta: "Alta", urgente: "Urgente",
+  negociacao: "Negociação", ganho: "Ganho", perdido: "Perdido",
+  rascunho: "Rascunho", enviada: "Enviada", aprovada: "Aprovada", recusada: "Recusada", vencida: "Vencida",
+  recebido: "Recebido", pendente: "Pendente", vencido: "Vencido",
+  ativo: "Ativo", inativo: "Inativo", lead: "Lead",
+  active: "Ativo", pending: "Pendente", suspended: "Suspenso",
+};
+
+export const getBadgeClass  = (s: string) => BADGE_CLASS[s]  || "gray";
+export const getBadgeLabel  = (s: string) => BADGE_LABEL[s]  || s;

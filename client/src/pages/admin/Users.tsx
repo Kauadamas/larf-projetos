@@ -3,8 +3,8 @@ import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
 import { fmtDate } from "../../lib/utils";
 import {
-  Card, Table, Th, Td, Tr,
-  Badge, Button, Modal, FormGroup, Input, Select, EmptyState, KpiCard,
+  PageHeader, Card, Table, Th, Td, Tr,
+  Badge, Button, Modal, FormGroup, Input, Select, EmptyState,
 } from "../../components/UI";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -40,13 +40,13 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
           <FormGroup label="Link do Convite (válido por 48h)">
             <div className="flex gap-2">
               <input readOnly value={sent} className="flex-1 px-3 py-2 rounded-lg text-xs"
-                style={{ background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--muted)" }} />
+                style={{ background: "var(--bg-overlay)", border: "1px solid var(--border)", color: "var(--text-lo)" }} />
               <Button size="sm" onClick={() => { navigator.clipboard.writeText(sent); toast.success("Copiado!"); }}>
                 Copiar
               </Button>
             </div>
           </FormGroup>
-          <p className="text-xs" style={{ color: "var(--muted)" }}>
+          <p className="text-xs" style={{ color: "var(--text-lo)" }}>
             Envie este link diretamente para o usuário por um canal seguro. Não publique em ambientes abertos.
           </p>
         </div>
@@ -62,7 +62,7 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
               <option value="admin">Administrador — acesso total</option>
             </Select>
           </FormGroup>
-          <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>
+          <p className="text-xs mt-1" style={{ color: "var(--text-lo)" }}>
             O convite expira em 48 horas. O usuário cria a própria senha ao aceitar o link.
           </p>
         </>
@@ -95,37 +95,28 @@ export default function Users() {
 
   return (
     <div className="p-6 max-w-6xl">
-      {/* Hero Section */}
-      <div style={{ background: `linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(59, 130, 246, 0.1))` }} className="rounded-2xl p-6 pt-8 mb-6 border border-red-500/20">
-        <h1 className="text-2xl font-bold mb-1">Gerenciamento de Usuários</h1>
-        <div style={{ color: "var(--muted)" }} className="text-sm mb-4">Controle de acesso, papéis, convites e auditoria de segurança</div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <KpiCard label="Usuários Ativos" value={users.filter(u => u.status === "active").length} color="var(--green)" />
-          <KpiCard label="Pendentes" value={users.filter(u => u.status === "pending").length} color="var(--yellow)" />
-          <KpiCard label="Suspensos" value={users.filter(u => u.status === "suspended").length} color="var(--red)" />
-          <Button variant="primary" onClick={() => setInviteOpen(true)}>+ Convidar Usuário</Button>
-        </div>
-      </div>
+      <PageHeader title="Usuários & Acesso">
+        <Button variant="primary" onClick={() => setInviteOpen(true)}>+ Convidar Usuário</Button>
+      </PageHeader>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-5 p-1 rounded-xl w-fit" style={{ background: "var(--surface2)" }} className="animation-fade-in">
-        {(["users", "invites", "audit"] as const).map((t, idx) => (
+      <div className="flex gap-1 mb-5 p-1 rounded-xl w-fit" style={{ background: "var(--bg-overlay)" }}>
+        {(["users", "invites", "audit"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all animation-fade-in"
+            className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
             style={{
-              background: tab === t ? "var(--surface)" : "transparent",
-              color: tab === t ? "var(--text)" : "var(--muted)",
+              background: tab === t ? "var(--bg-raised)" : "transparent",
+              color: tab === t ? "var(--text-hi)" : "var(--text-lo)",
               border: tab === t ? "1px solid var(--border)" : "1px solid transparent",
-              animationDelay: `${idx * 0.05}s`,
             }}>
-            {{ users: "👥 Usuários", invites: "📨 Convites", audit: "📋 Auditoria" }[t]}
+            {{ users: "Usuários", invites: "Convites", audit: "Audit Log" }[t]}
           </button>
         ))}
       </div>
 
       {/* ── Usuários ── */}
       {tab === "users" && (
-        <Card className="animation-fade-in">
+        <Card>
           {users.length ? (
             <Table>
               <thead><tr><Th>Usuário</Th><Th>E-mail</Th><Th>Papel</Th><Th>Status</Th><Th>Último login</Th><Th></Th></tr></thead>
@@ -144,27 +135,27 @@ export default function Users() {
                         </div>
                       </div>
                     </Td>
-                    <Td><span className="text-sm" style={{ color: "var(--muted)" }}>{u.email}</span></Td>
+                    <Td><span className="text-sm" style={{ color: "var(--text-lo)" }}>{u.email}</span></Td>
                     <Td>
                       {u.id !== me?.id ? (
                         <select value={u.role}
                           onChange={e => setRole.mutate({ userId: u.id, role: e.target.value as any })}
                           className="text-xs px-2 py-1 rounded-lg outline-none"
-                          style={{ background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text)" }}>
+                          style={{ background: "var(--bg-overlay)", border: "1px solid var(--border)", color: "var(--text-hi)" }}>
                           <option value="viewer">viewer</option>
                           <option value="member">member</option>
                           <option value="admin">admin</option>
                           <option value="superadmin">superadmin</option>
                         </select>
-                      ) : <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>{u.role}</span>}
+                      ) : <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "var(--bg-overlay)", border: "1px solid var(--border)" }}>{u.role}</span>}
                     </Td>
                     <Td>
                       <span className="flex items-center gap-1.5 text-xs font-medium">
-                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: statusColors[u.status] || "var(--muted)" }} />
+                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: statusColors[u.status] || "var(--text-lo)" }} />
                         {statusLabels[u.status] || u.status}
                       </span>
                     </Td>
-                    <Td><span className="text-xs" style={{ color: "var(--muted)" }}>{u.lastLoginAt ? fmtDate(u.lastLoginAt) : "Nunca"}</span></Td>
+                    <Td><span className="text-xs" style={{ color: "var(--text-lo)" }}>{u.lastLoginAt ? fmtDate(u.lastLoginAt) : "Nunca"}</span></Td>
                     <Td>
                       <div className="flex gap-1.5">
                         <Button size="sm" variant="ghost" onClick={() => { setPwUserId(u.id); setNewPw(""); setPwModal(true); }}>🔑</Button>
@@ -186,7 +177,7 @@ export default function Users() {
 
       {/* ── Convites ── */}
       {tab === "invites" && (
-        <Card className="animation-fade-in">
+        <Card>
           {invites.length ? (
             <Table>
               <thead><tr><Th>E-mail</Th><Th>Papel</Th><Th>Status</Th><Th>Expira em</Th><Th>Criado</Th></tr></thead>
@@ -194,14 +185,14 @@ export default function Users() {
                 {invites.map((i: any) => (
                   <Tr key={i.id}>
                     <Td><span className="font-medium text-sm">{i.email}</span></Td>
-                    <Td><span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>{i.role}</span></Td>
+                    <Td><span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--bg-overlay)", border: "1px solid var(--border)" }}>{i.role}</span></Td>
                     <Td>
                       {i.used    ? <Badge status="ativo" />      : null}
                       {i.expired && !i.used ? <Badge status="vencido" /> : null}
                       {i.pending ? <Badge status="pendente" />   : null}
                     </Td>
-                    <Td><span className="text-xs" style={{ color: "var(--muted)" }}>{fmtDate(i.expiresAt)}</span></Td>
-                    <Td><span className="text-xs" style={{ color: "var(--muted)" }}>{fmtDate(i.createdAt)}</span></Td>
+                    <Td><span className="text-xs" style={{ color: "var(--text-lo)" }}>{fmtDate(i.expiresAt)}</span></Td>
+                    <Td><span className="text-xs" style={{ color: "var(--text-lo)" }}>{fmtDate(i.createdAt)}</span></Td>
                   </Tr>
                 ))}
               </tbody>
@@ -212,18 +203,18 @@ export default function Users() {
 
       {/* ── Audit Log ── */}
       {tab === "audit" && (
-        <Card className="animation-fade-in">
+        <Card>
           {audit.length ? (
             <Table>
               <thead><tr><Th>Ação</Th><Th>Usuário ID</Th><Th>Detalhe</Th><Th>IP</Th><Th>Data</Th></tr></thead>
               <tbody>
                 {(audit as any[]).map((a: any) => (
                   <Tr key={a.id}>
-                    <Td><span className="font-mono text-xs" style={{ color: a.action.includes("fail") || a.action.includes("suspend") ? "var(--red)" : a.action.includes("success") ? "var(--green)" : "var(--muted2)" }}>{a.action}</span></Td>
+                    <Td><span className="font-mono text-xs" style={{ color: a.action.includes("fail") || a.action.includes("suspend") ? "var(--red)" : a.action.includes("success") ? "var(--green)" : "var(--text-lo)" }}>{a.action}</span></Td>
                     <Td><span className="text-xs font-mono">{a.userId ?? "—"}</span></Td>
-                    <Td><span className="text-xs" style={{ color: "var(--muted)" }}>{a.detail || "—"}</span></Td>
-                    <Td><span className="text-xs font-mono" style={{ color: "var(--muted)" }}>{a.ipAddress || "—"}</span></Td>
-                    <Td><span className="text-xs" style={{ color: "var(--muted)" }}>{fmtDate(a.createdAt)}</span></Td>
+                    <Td><span className="text-xs" style={{ color: "var(--text-lo)" }}>{a.detail || "—"}</span></Td>
+                    <Td><span className="text-xs font-mono" style={{ color: "var(--text-lo)" }}>{a.ipAddress || "—"}</span></Td>
+                    <Td><span className="text-xs" style={{ color: "var(--text-lo)" }}>{fmtDate(a.createdAt)}</span></Td>
                   </Tr>
                 ))}
               </tbody>
@@ -246,7 +237,7 @@ export default function Users() {
         <FormGroup label="Nova Senha (mín. 8 caracteres)">
           <Input type="password" value={newPw} onChange={e => setNewPw(e.target.value)} placeholder="••••••••" />
         </FormGroup>
-        <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
+        <p className="text-xs mt-2" style={{ color: "var(--text-lo)" }}>
           Todas as sessões ativas do usuário serão encerradas.
         </p>
       </Modal>

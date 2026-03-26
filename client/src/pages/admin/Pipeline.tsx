@@ -93,11 +93,11 @@ export default function Pipeline() {
                       </div>
                       {c.notes && <div className="text-xs p-2 rounded" style={{ background: "var(--surface2)", color: "var(--muted)" }}>{c.notes.slice(0, 50)}...</div>}
                     </div>
+                  ))}
                 </KanbanCol>
               </div>
-                ))}
-              </KanbanCol>
             );
+          })}
           })}
         </div>
       )}

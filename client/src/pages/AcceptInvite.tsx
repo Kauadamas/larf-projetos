@@ -344,8 +344,8 @@ export default function AcceptInvite() {
         {/* Security Notice */}
         <div
           className="mt-8 p-4 rounded-lg border animate-fade"
-          style={{ animationDelay: "0.3s" }}
           style={{
+            animationDelay: "0.3s",
             background: "rgba(100,115,139,.05)",
             borderColor: "rgba(100,115,139,.2)",
             color: "var(--muted)",

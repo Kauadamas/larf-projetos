@@ -103,7 +103,7 @@ CREATE TABLE `proposals` (
   `clientId` int,
   `projectId` int,
   `title` varchar(255) NOT NULL,
-  `items` text NOT NULL DEFAULT '[]',
+  `items` text NOT NULL,
   `subtotal` decimal(12,2) DEFAULT '0',
   `discount` decimal(12,2) DEFAULT '0',
   `total` decimal(12,2) DEFAULT '0',

@@ -1,38 +1,53 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useSearch } from "wouter";
 import { trpc } from "../lib/trpc";
 import { toast } from "sonner";
+import {
+  Lock, Mail, Eye, EyeOff, User, ArrowRight, Shield, AlertCircle, CheckCircle2, Loader2
+} from "lucide-react";
 
-// ─── Barra de força de senha ──────────────────────────────────────────────────
+// ─── Password Strength Component ──────────────────────────────────────────────
 function PasswordStrength({ password }: { password: string }) {
   const checks = [
-    { label: "8+ chars",   ok: password.length >= 8 },
-    { label: "Maiúscula",  ok: /[A-Z]/.test(password) },
-    { label: "Minúscula",  ok: /[a-z]/.test(password) },
-    { label: "Número",     ok: /[0-9]/.test(password) },
-    { label: "Especial",   ok: /[^A-Za-z0-9]/.test(password) },
+    { label: "8+ chars", ok: password.length >= 8 },
+    { label: "Uppercase", ok: /[A-Z]/.test(password) },
+    { label: "Lowercase", ok: /[a-z]/.test(password) },
+    { label: "Number", ok: /[0-9]/.test(password) },
+    { label: "Symbol", ok: /[^A-Za-z0-9]/.test(password) },
   ];
-  const score  = checks.filter(c => c.ok).length;
-  const colors = ["","var(--red)","var(--red)","var(--yellow)","var(--yellow)","var(--green)"];
-  const labels = ["","Muito fraca","Fraca","Razoável","Boa","Forte"];
+  const score = checks.filter(c => c.ok).length;
+  const colors = ["", "#ef4444", "#ef4444", "#eab308", "#eab308", "#22c55e"];
+  const labels = ["", "Very weak", "Weak", "Fair", "Good", "Strong"];
 
   if (!password) return null;
 
   return (
-    <div className="mt-2 space-y-1.5">
-      <div className="flex gap-1">
-        {[1,2,3,4,5].map(i => (
-          <div key={i} className="flex-1 h-1 rounded-full transition-all"
-            style={{ background: i <= score ? colors[score] : "var(--border)" }} />
+    <div className="mt-3 space-y-2">
+      <div className="flex gap-1.5">
+        {[1, 2, 3, 4, 5].map(i => (
+          <div
+            key={i}
+            className="flex-1 h-1.5 rounded-full transition-all"
+            style={{ background: i <= score ? colors[score] : "rgba(100,115,139,.2)" }}
+          />
         ))}
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold" style={{ color: colors[score] }}>{labels[score]}</span>
-        <div className="flex flex-wrap justify-end gap-2">
+        <span
+          className="text-xs font-semibold"
+          style={{ color: colors[score] }}
+        >
+          {labels[score]}
+        </span>
+        <div className="flex flex-wrap justify-end gap-1.5">
           {checks.map(c => (
-            <span key={c.label} className="text-xs flex items-center gap-0.5"
-              style={{ color: c.ok ? "var(--green)" : "var(--muted)" }}>
-              {c.ok ? "✓" : "○"} {c.label}
+            <span
+              key={c.label}
+              className="text-xs flex items-center gap-1"
+              style={{ color: c.ok ? "#22c55e" : "var(--muted)" }}
+            >
+              {c.ok ? <CheckCircle2 size={12} /> : <div className="w-3 h-3 rounded-full border border-current" />}
+              {c.label}
             </span>
           ))}
         </div>
@@ -41,147 +56,306 @@ function PasswordStrength({ password }: { password: string }) {
   );
 }
 
-// ─── Telas auxiliares ─────────────────────────────────────────────────────────
+// ─── Helper Components ────────────────────────────────────────────────────────
 function Spinner() {
-  return <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
-    <div className="text-center space-y-3">
-      <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto"
-        style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
-      <p className="text-sm" style={{ color: "var(--muted)" }}>Verificando convite...</p>
+  return (
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ background: "var(--bg)" }}>
+      <div
+        className="absolute top-1/3 right-0 w-96 h-96 rounded-full opacity-5 pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, var(--accent) 0%, transparent 70%)",
+          transform: "translate(50%, -50%)",
+        }}
+      />
+      <div className="text-center space-y-4 relative z-10">
+        <Loader2 size={32} className="mx-auto animate-spin" style={{ color: "var(--accent)" }} />
+        <p className="text-sm" style={{ color: "var(--muted)" }}>
+          Verifying invitation...
+        </p>
+      </div>
     </div>
-  </div>;
+  );
 }
 
 function ErrorScreen({ msg }: { msg: string }) {
   const [, navigate] = useLocation();
-  return <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "var(--bg)" }}>
-    <div className="text-center max-w-sm">
-      <div className="text-5xl mb-4">🔒</div>
-      <h2 className="text-xl font-bold mb-2">Link inválido</h2>
-      <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>{msg}</p>
-      <button onClick={() => navigate("/login")}
-        className="px-6 py-2.5 rounded-lg text-sm font-bold text-white"
-        style={{ background: "var(--accent)" }}>
-        Ir para o login
-      </button>
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden" style={{ background: "var(--bg)" }}>
+      <div
+        className="absolute top-1/2 right-0 w-96 h-96 rounded-full opacity-5 pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, var(--accent) 0%, transparent 70%)",
+          transform: "translate(50%, -50%)",
+        }}
+      />
+      <div className="text-center max-w-sm relative z-10">
+        <div
+          className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-6"
+          style={{ background: "rgba(239,68,68,.1)" }}
+        >
+          <AlertCircle size={32} style={{ color: "#ef4444" }} />
+        </div>
+        <h2 className="text-2xl font-bold mb-2">Invalid invitation</h2>
+        <p className="text-sm mb-8" style={{ color: "var(--muted)" }}>
+          {msg}
+        </p>
+        <button
+          onClick={() => navigate("/login")}
+          className="btn btn-primary"
+        >
+          <ArrowRight size={18} />
+          Back to login
+        </button>
+      </div>
     </div>
-  </div>;
+  );
 }
 
-// ─── Página principal ─────────────────────────────────────────────────────────
+// ─── Main Component ──────────────────────────────────────────────────────────
 const ROLE_LABEL: Record<string, string> = {
-  viewer: "Visualizador", member: "Membro", admin: "Administrador",
+  viewer: "Viewer",
+  member: "Member",
+  admin: "Administrator",
 };
 
 export default function AcceptInvite() {
   const [, navigate] = useLocation();
   const search = useSearch();
-  const token  = new URLSearchParams(search).get("token") || "";
+  const token = new URLSearchParams(search).get("token") || "";
+  const [mounted, setMounted] = useState(false);
 
-  const [name,    setName]    = useState("");
-  const [pw,      setPw]      = useState("");
+  const [name, setName] = useState("");
+  const [pw, setPw] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [showPw,  setShowPw]  = useState(false);
+  const [showPw, setShowPw] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { data: invite, isLoading, error } = trpc.auth.validateInvite.useQuery(
-    { token }, { enabled: !!token, retry: false }
+    { token },
+    { enabled: !!token, retry: false }
   );
 
   const accept = trpc.auth.acceptInvite.useMutation({
-    onSuccess: () => { toast.success("Conta criada! Bem-vindo(a) ao LARF."); navigate("/admin"); },
-    onError:   e  => toast.error(e.message),
+    onSuccess: () => {
+      toast.success("Account created! Welcome to LARF.");
+      navigate("/admin");
+    },
+    onError: e => toast.error(e.message),
   });
 
-  if (!token)    return <ErrorScreen msg="Nenhum token de convite encontrado neste link." />;
+  if (!token) return <ErrorScreen msg="No invitation token found in this link." />;
   if (isLoading) return <Spinner />;
-  if (error)     return <ErrorScreen msg={error.message} />;
+  if (error) return <ErrorScreen msg={error.message} />;
 
-  const pwMatch  = !confirm || pw === confirm;
-  const canSubmit = name.trim().length >= 2 && pw.length >= 8 && pw === confirm && !accept.isPending;
+  const pwMatch = !confirm || pw === confirm;
+  const canSubmit =
+    name.trim().length >= 2 &&
+    pw.length >= 8 &&
+    pw === confirm &&
+    !accept.isPending;
 
-  const inputCls = "w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-all";
-  const inputSt  = { background: "var(--surface2)", border: "1.5px solid var(--border)", color: "var(--text)" };
+  if (!mounted) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "var(--bg)" }}>
-      <div className="w-full max-w-md">
+    <div
+      className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden"
+      style={{ background: "var(--bg)" }}
+    >
+      {/* Decorative background */}
+      <div
+        className="absolute top-1/2 -right-32 w-96 h-96 rounded-full opacity-5 pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, var(--accent) 0%, transparent 70%)",
+          transform: "translate(0, -50%)",
+        }}
+      />
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Logo */}
+        <div className="mb-8 animate-fade">
+          <div className="flex items-center gap-3 mb-6">
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm transition-smooth hover:scale-110"
+              style={{
+                background: "linear-gradient(135deg, var(--accent) 0%, #00d9ff 100%)",
+                color: "white",
+              }}
+            >
+              L
+            </div>
+            <div>
+              <div className="font-bold text-sm">LARF</div>
+              <div className="text-xs" style={{ color: "var(--muted)" }}>
+                Project Management
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white font-black text-xl"
-            style={{ background: "var(--accent)", boxShadow: "0 0 28px rgba(192,57,43,.45)" }}>L</div>
-          <h1 className="text-2xl font-bold tracking-tight">Criar sua conta</h1>
-          <p className="text-sm mt-1.5" style={{ color: "var(--muted)" }}>
-            Você foi convidado como{" "}
-            <strong style={{ color: "var(--accent)" }}>{ROLE_LABEL[invite?.role || "member"]}</strong>
+        <div className="mb-8 animate-slide-up" style={{ animationDelay: "0.1s" }}>
+          <h1 className="text-3xl font-bold mb-2">Create your account</h1>
+          <p className="text-sm" style={{ color: "var(--muted)" }}>
+            You were invited as{" "}
+            <span className="font-semibold" style={{ color: "var(--accent)" }}>
+              {ROLE_LABEL[invite?.role || "member"]}
+            </span>
           </p>
         </div>
 
-        <div className="rounded-2xl p-6 space-y-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-
-          {/* E-mail bloqueado */}
+        {/* Form Container */}
+        <div className="space-y-6 animate-slide-up" style={{ animationDelay: "0.2s" }}>
+          {/* Email - Read Only */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "var(--muted2)" }}>E-mail</label>
-            <div className="px-3 py-2.5 rounded-lg text-sm flex items-center gap-2"
-              style={{ background: "var(--surface2)", border: "1.5px solid var(--border)", color: "var(--muted)" }}>
-              <span>🔒</span><span>{invite?.email}</span>
+            <label className="text-sm font-medium mb-2 block" style={{ color: "var(--text-secondary)" }}>
+              Email address
+            </label>
+            <div
+              className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-3 transition-smooth"
+              style={{
+                background: "rgba(59,130,246,.05)",
+                border: "1px solid rgba(59,130,246,.2)",
+                color: "var(--muted)",
+              }}
+            >
+              <Mail size={18} />
+              <span>{invite?.email}</span>
             </div>
-            <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>Vinculado ao convite — não pode ser alterado</p>
+            <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
+              Linked to your invitation and cannot be changed
+            </p>
           </div>
 
-          {/* Nome */}
+          {/* Name */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "var(--muted2)" }}>Seu nome *</label>
-            <input value={name} onChange={e => setName(e.target.value)}
-              placeholder="Como você quer ser chamado(a)" autoComplete="name"
-              className={inputCls} style={inputSt}
-              onFocus={e => (e.target.style.borderColor = "var(--accent)")}
-              onBlur={e  => (e.target.style.borderColor = "var(--border)")} />
-          </div>
-
-          {/* Senha */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "var(--muted2)" }}>Senha *</label>
+            <label className="text-sm font-medium mb-2 block" style={{ color: "var(--text-secondary)" }}>
+              Full name
+            </label>
             <div className="relative">
-              <input type={showPw ? "text" : "password"} value={pw} onChange={e => setPw(e.target.value)}
-                placeholder="Mínimo 8 caracteres" autoComplete="new-password"
-                className={`${inputCls} pr-10`} style={inputSt}
-                onFocus={e => (e.target.style.borderColor = "var(--accent)")}
-                onBlur={e  => (e.target.style.borderColor = "var(--border)")} />
-              <button type="button" onClick={() => setShowPw(!showPw)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm"
-                style={{ color: "var(--muted)" }}>
-                {showPw ? "🙈" : "👁️"}
+              <User
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2"
+                style={{ color: "var(--muted)" }}
+              />
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="How should we call you?"
+                autoComplete="name"
+                className="input pl-10"
+                autoFocus
+              />
+            </div>
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="text-sm font-medium mb-2 block" style={{ color: "var(--text-secondary)" }}>
+              Password
+            </label>
+            <div className="relative">
+              <Lock
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2"
+                style={{ color: "var(--muted)" }}
+              />
+              <input
+                type={showPw ? "text" : "password"}
+                value={pw}
+                onChange={e => setPw(e.target.value)}
+                placeholder="Minimum 8 characters"
+                autoComplete="new-password"
+                className="input pl-10 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw(!showPw)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 transition-smooth hover:opacity-70"
+                style={{ color: "var(--muted)" }}
+              >
+                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
             <PasswordStrength password={pw} />
           </div>
 
-          {/* Confirmar senha */}
+          {/* Confirm Password */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "var(--muted2)" }}>Confirmar senha *</label>
-            <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)}
-              placeholder="Repita a senha" autoComplete="new-password"
-              className={inputCls}
-              style={{ ...inputSt, borderColor: !pwMatch ? "var(--red)" : "var(--border)" }}
-              onFocus={e => (e.target.style.borderColor = !pwMatch ? "var(--red)" : "var(--accent)")}
-              onBlur={e  => (e.target.style.borderColor = !pwMatch ? "var(--red)" : "var(--border)")} />
-            {!pwMatch && <p className="text-xs mt-1" style={{ color: "var(--red)" }}>As senhas não conferem</p>}
+            <label className="text-sm font-medium mb-2 block" style={{ color: "var(--text-secondary)" }}>
+              Confirm password
+            </label>
+            <div className="relative">
+              <Lock
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2"
+                style={{ color: "var(--muted)" }}
+              />
+              <input
+                type="password"
+                value={confirm}
+                onChange={e => setConfirm(e.target.value)}
+                placeholder="Repeat your password"
+                autoComplete="new-password"
+                className="input pl-10"
+                style={{
+                  borderColor: !pwMatch ? "#ef4444" : undefined,
+                }}
+              />
+            </div>
+            {!pwMatch && (
+              <p className="text-xs mt-2 flex items-center gap-1" style={{ color: "#ef4444" }}>
+                <AlertCircle size={14} />
+                Passwords don't match
+              </p>
+            )}
           </div>
 
+          {/* Submit Button */}
           <button
-            onClick={() => accept.mutate({ token, name, password: pw, passwordConfirm: confirm })}
+            onClick={() =>
+              accept.mutate({
+                token,
+                name,
+                password: pw,
+                passwordConfirm: confirm,
+              })
+            }
             disabled={!canSubmit}
-            className="w-full py-2.5 rounded-lg text-sm font-bold text-white flex items-center justify-center gap-2 transition-all"
-            style={{ background: "var(--accent)", opacity: canSubmit ? 1 : 0.5 }}>
-            {accept.isPending && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-            Criar minha conta
+            className="btn btn-primary w-full"
+          >
+            {accept.isPending ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                Creating account...
+              </>
+            ) : (
+              <>
+                <Shield size={18} />
+                Create my account
+              </>
+            )}
           </button>
         </div>
 
-        <p className="text-center text-xs mt-4" style={{ color: "var(--muted)" }}>
-          Este link é pessoal e intransferível. Não compartilhe com terceiros.
-        </p>
+        {/* Security Notice */}
+        <div
+          className="mt-8 p-4 rounded-lg border animate-fade"
+          style={{ animationDelay: "0.3s" }}
+          style={{
+            background: "rgba(100,115,139,.05)",
+            borderColor: "rgba(100,115,139,.2)",
+            color: "var(--muted)",
+          }}
+        >
+          <p className="text-xs leading-relaxed">
+            <span className="font-semibold">Privacy notice:</span> This is a personal,
+            non-transferable link. Do not share it with others.
+          </p>
+        </div>
       </div>
     </div>
   );

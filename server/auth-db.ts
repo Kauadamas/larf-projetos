@@ -124,6 +124,12 @@ export async function createSession(data: {
   ipAddress?: string; userAgent?: string; expiresAt: Date;
 }): Promise<number> {
   const db = await getDb(); if (!db) throw new Error("DB unavailable");
+  
+  // Validate tokenHash is properly generated (SHA256 hex = 64 chars)
+  if (!data.tokenHash || data.tokenHash.length !== 64 || data.tokenHash === 'pending') {
+    throw new Error(`Invalid tokenHash: ${data.tokenHash}. Token must be a valid 64-char SHA256 hex string.`);
+  }
+  
   const r = await db.insert(sessions).values(data as any);
   return Number((r[0] as any).insertId);
 }

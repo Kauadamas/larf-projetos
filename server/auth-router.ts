@@ -103,15 +103,20 @@ export const authRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: `Conta temporariamente bloqueada. Tente novamente em ${mins} minuto(s).` });
       }
 
-      // Login bem-sucedido — criar sessão server-side
+      // Login bem-sucedido — gera token e cria sessão com hash real diretamente
       const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MS);
-      const sessionId = await createSession({ userId: user.id, tokenHash: "pending", ipAddress: ip, userAgent: ua, expiresAt });
-      const token     = await signToken({ userId: user.id, role: user.role, sessionId });
-      const tHash     = hashToken(token);
-
-      // Criar sessão com hash real
-      const finalSessionId = await createSession({ userId: user.id, tokenHash: tHash, ipAddress: ip, userAgent: ua, expiresAt });
-      const finalToken     = await signToken({ userId: user.id, role: user.role, sessionId: finalSessionId });
+      // Usamos sessionId=0 temporariamente só para assinar, depois criamos com o ID real
+      const tempToken  = await signToken({ userId: user.id, role: user.role, sessionId: 0 });
+      if (!tempToken || tempToken.length === 0) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Falha ao gerar token de sessão." });
+      }
+      const tHash      = hashToken(tempToken);
+      const sessionId  = await createSession({ userId: user.id, tokenHash: tHash, ipAddress: ip, userAgent: ua, expiresAt });
+      // Token final com o sessionId correto
+      const finalToken = await signToken({ userId: user.id, role: user.role, sessionId });
+      if (!finalToken || finalToken.length === 0) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Falha ao gerar token final de sessão." });
+      }
 
       await resetFailedLogin(user.id, ip);
       await writeAudit({ userId: user.id, action: "login.success", ipAddress: ip, userAgent: ua });
@@ -188,11 +193,16 @@ export const authRouter = router({
 
       // Auto-login após criar conta
       const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MS);
-      const sessionId = await createSession({ userId, tokenHash: "pending", ipAddress: ip, userAgent: ua, expiresAt });
-      const token     = await signToken({ userId, role: invite.role, sessionId });
-      const tHash     = hashToken(token);
+      const tempTok   = await signToken({ userId, role: invite.role, sessionId: 0 });
+      if (!tempTok || tempTok.length === 0) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Falha ao gerar token de sessão." });
+      }
+      const tHash     = hashToken(tempTok);
       const finalSid  = await createSession({ userId, tokenHash: tHash, ipAddress: ip, userAgent: ua, expiresAt });
       const finalTok  = await signToken({ userId, role: invite.role, sessionId: finalSid });
+      if (!finalTok || finalTok.length === 0) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Falha ao gerar token final de sessão." });
+      }
 
       ctx.res.cookie(COOKIE_NAME, finalTok, cookieOptions(ctx.req));
       const user = await getUserById(userId);

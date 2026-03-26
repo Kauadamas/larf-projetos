@@ -3,13 +3,16 @@ import { useLocation } from "wouter";
 import { useEffect } from "react";
 
 export function useAuth() {
-  const { data: user, isLoading } = trpc.auth.me.useQuery();
+  const { data: user, isLoading, isFetching } = trpc.auth.me.useQuery(undefined, {
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
   const [, navigate] = useLocation();
   const utils = trpc.useUtils();
 
   useEffect(() => {
-    console.log("[useAuth] User data:", user, "isLoading:", isLoading);
-  }, [user, isLoading]);
+    console.log("[useAuth] User data updated:", user, "isLoading:", isLoading, "isFetching:", isFetching);
+  }, [user, isLoading, isFetching]);
 
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => {

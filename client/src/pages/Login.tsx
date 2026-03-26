@@ -14,13 +14,16 @@ export default function Login() {
   const utils = trpc.useUtils();
 
   const login = trpc.auth.login.useMutation({
-    onSuccess: () => {
-      console.log("[Login] Sucesso! Invalidando cache de auth.me e navegando para /admin");
-      utils.auth.me.invalidate();
-      setTimeout(() => {
-        console.log("[Login] Navegando para /admin após invalidação");
-        navigate("/admin");
-      }, 100);
+    onSuccess: async () => {
+      console.log("[Login] Sucesso! Refetching auth.me");
+      try {
+        // Force refetch and wait for it to complete
+        await utils.auth.me.refetch();
+        console.log("[Login] Auth.me refetched, navigating to /admin");
+      } catch (err) {
+        console.error("[Login] Erro ao refetch auth.me:", err);
+      }
+      navigate("/admin");
     },
     onError: e => {
       console.error("[Login] Erro ao fazer login:", e);

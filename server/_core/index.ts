@@ -42,12 +42,15 @@ async function start() {
       let user = null;
       let sessionId: number | null = null;
       try {
+        const cookies = (req as any).cookies;
+        console.log("[Context] Cookies recebidos:", Object.keys(cookies || {}));
+        
         const token = extractToken(req as any);
         if (token) {
-          console.log("[Context] Token encontrado, verificando...");
+          console.log("[Context] Token encontrado, length:", token.length, "start:", token.slice(0, 20) + "...");
           const payload = await getSessionFromRequest(req as any);
           if (payload) {
-            console.log("[Context] Payload válido para userId:", payload.userId);
+            console.log("[Context] Payload válido para userId:", payload.userId, "sessionId:", payload.sessionId);
             // Validate session still exists and not revoked
             const tokenHash = hashToken(token);
             const session = await findSession(tokenHash);
@@ -68,7 +71,7 @@ async function start() {
             console.log("[Context] Token inválido ou expirado");
           }
         } else {
-          console.log("[Context] Sem token");
+          console.log("[Context] Sem token nos cookies ou headers");
         }
       } catch (e) {
         console.error("[Context]", e);

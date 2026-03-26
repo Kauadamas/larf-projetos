@@ -48,8 +48,14 @@ export const authRouter = router({
 
   // ── me ───────────────────────────────────────────────────────────────────────
   me: publicProcedure.query(({ ctx }) => {
-    if (!ctx.user) return null;
-    return safeUser(ctx.user);
+    console.log("[Auth.me] Query chamada, ctx.user:", ctx.user?.email, "ctx.sessionId:", ctx.sessionId);
+    if (!ctx.user) {
+      console.log("[Auth.me] Sem usuário autenticado");
+      return null;
+    }
+    const user = safeUser(ctx.user);
+    console.log("[Auth.me] Retornando usuário:", user.email);
+    return user;
   }),
 
   // ── login ────────────────────────────────────────────────────────────────────

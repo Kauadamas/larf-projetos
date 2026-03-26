@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
 import { fmtDate, today } from "../../lib/utils";
-import { PageHeader, Card, CardHeader, CardTitle, CardBody, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState } from "../../components/UI";
+import { Card, CardHeader, CardTitle, CardBody, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, KpiCard } from "../../components/UI";
 
 type FormData = { projectId: string; date: string; hours: string; description: string; billable: "1" | "0" };
 const empty: FormData = { projectId: "", date: today(), hours: "", description: "", billable: "1" };
@@ -61,14 +61,25 @@ export default function Time() {
     create.mutate({ projectId: parseInt(form.projectId), date: form.date, hours: form.hours, description: form.description, billable: form.billable === "1" });
   }
 
+  const billableHours = entries.filter(e => e.billable).reduce((s, e) => s + Number(e.hours), 0);
+  const todayHours = entries.filter(e => e.date === today()).reduce((s, e) => s + Number(e.hours), 0);
+
   return (
-    <div className="p-6 max-w-5xl">
-      <PageHeader title="Registro de Horas">
-        <Button variant="primary" onClick={() => { setForm(empty); setModal(true); }}>+ Registrar</Button>
-      </PageHeader>
+    <div className="p-6 max-w-6xl">
+      {/* Hero Section */}
+      <div style={{ background: `linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(59, 130, 246, 0.1))` }} className="rounded-2xl p-6 pt-8 mb-6 border border-purple-500/20">
+        <h1 className="text-2xl font-bold mb-1">Registro de Horas</h1>
+        <div style={{ color: "var(--muted)" }} className="text-sm mb-4">Timer em tempo real e registro manual de horas trabalhadas</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <KpiCard label="Total de Horas" value={totalHours.toFixed(1) + "h"} color="var(--blue)" />
+          <KpiCard label="Horas Faturáveis" value={billableHours.toFixed(1) + "h"} color="var(--green)" />
+          <KpiCard label="Hoje" value={todayHours.toFixed(1) + "h"} color="var(--accent)" />
+          <Button variant="primary" onClick={() => { setForm(empty); setModal(true); }} className="col-span-full md:col-span-1">+ Registrar</Button>
+        </div>
+      </div>
 
       {/* Timer Card */}
-      <Card className="mb-5">
+      <Card className="mb-5 animation-fade-in" style={{ animationDelay: "0.1s" }}>
         <CardBody>
           <div className="flex items-center gap-6 flex-wrap">
             <div>
@@ -92,9 +103,12 @@ export default function Time() {
       </Card>
 
       {/* Entries */}
-      <Card>
+      <Card className="animation-fade-in" style={{ animationDelay: "0.2s" }}>
         <CardHeader>
-          <CardTitle>Entradas — {totalHours.toFixed(1)}h total</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>Histórico de Horas</span>
+            <span style={{ fontSize: "0.85em", color: "var(--muted)" }}>{totalHours.toFixed(1)}h total</span>
+          </CardTitle>
         </CardHeader>
         {entries.length ? (
           <Table>

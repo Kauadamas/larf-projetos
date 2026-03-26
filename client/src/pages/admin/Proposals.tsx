@@ -2,7 +2,7 @@ import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
 import { fmtCurrency, fmtDate } from "../../lib/utils";
-import { PageHeader, Card, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState } from "../../components/UI";
+import { Card, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, KpiCard } from "../../components/UI";
 
 type Item = { desc: string; qty: number; unit: string; value: number };
 type FormData = { title: string; clientId: string; projectId: string; status: string; validityDays: string; discount: string; notes: string };
@@ -26,6 +26,21 @@ export default function Proposals() {
   const del = trpc.proposals.delete.useMutation({ onSuccess: () => { toast.success("Excluída."); utils.proposals.list.invalidate(); } });
 
   const clientMap = Object.fromEntries(clients.map(c => [c.id, c.name]));
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
+  const filteredProposals = proposals.filter(p => {
+    const matchesSearch = !searchTerm || p.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = !statusFilter || p.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const stats = {
+    total: proposals.length,
+    rascunho: proposals.filter(p => p.status === "rascunho").length,
+    enviada: proposals.filter(p => p.status === "enviada").length,
+    aprovada: proposals.filter(p => p.status === "aprovada").reduce((s, p) => s + Number(p.total || 0), 0),
+  };
 
   function openCreate() {
     setEditId(null); setForm(empty); setItems([{ desc: "", qty: 1, unit: "serviço", value: 0 }]); setModal(true);
@@ -61,16 +76,50 @@ export default function Proposals() {
 
   return (
     <div className="p-6 max-w-7xl">
-      <PageHeader title="Propostas" count={proposals.length}>
+      {/* Hero Section */}
+      <div style={{ background: `linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))` }} className="rounded-2xl p-6 pt-8 mb-6 border border-blue-500/20">
+        <h1 className="text-2xl font-bold mb-1">Propostas Comerciais</h1>
+        <div style={{ color: "var(--muted)" }} className="text-sm mb-4">Gerenciador de propostas, orçamentos e cotações</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <KpiCard label="Total" value={stats.total} color="var(--blue)" />
+          <KpiCard label="Rascunhos" value={stats.rascunho} color="var(--muted2)" />
+          <KpiCard label="Enviadas" value={stats.enviada} color="var(--accent)" />
+          <KpiCard label="Aprovadas" value={fmtCurrency(stats.aprovada)} color="var(--green)" />
+        </div>
+      </div>
+
+      {/* Search & Filter */}
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
+        <input
+          type="text"
+          placeholder="Buscar proposta..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="flex-1 min-w-64 px-4 py-2 rounded-lg text-sm transition-all"
+          style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+        />
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          className="w-48 px-3 py-2 rounded-lg text-sm"
+          style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+        >
+          <option value="">Todos os status</option>
+          <option value="rascunho">Rascunho</option>
+          <option value="enviada">Enviada</option>
+          <option value="aprovada">Aprovada</option>
+          <option value="recusada">Recusada</option>
+          <option value="vencida">Vencida</option>
+        </select>
         <Button variant="primary" onClick={openCreate}>+ Nova Proposta</Button>
-      </PageHeader>
+      </div>
 
       <Card>
-        {proposals.length ? (
+        {filteredProposals.length ? (
           <Table>
             <thead><tr><Th>Título</Th><Th>Cliente</Th><Th>Total</Th><Th>Validade</Th><Th>Status</Th><Th></Th></tr></thead>
             <tbody>
-              {proposals.map(p => (
+              {filteredProposals.map(p => (
                 <Tr key={p.id}>
                   <Td><span className="font-semibold text-sm">{p.title}</span></Td>
                   <Td><span className="text-sm" style={{ color: "var(--muted)" }}>{clientMap[p.clientId ?? 0] || "—"}</span></Td>
@@ -89,8 +138,8 @@ export default function Proposals() {
             </tbody>
           </Table>
         ) : (
-          <EmptyState icon="📄" title="Nenhuma proposta criada ainda"
-            action={<Button variant="primary" onClick={openCreate}>+ Criar Primeira Proposta</Button>} />
+          <EmptyState icon="📄" title={searchTerm || statusFilter ? "Nenhuma proposta encontrada" : "Nenhuma proposta criada ainda"}
+            action={<Button variant="primary" onClick={openCreate}>+ Criar Proposta</Button>} />
         )}
       </Card>
 

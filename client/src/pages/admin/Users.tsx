@@ -3,8 +3,8 @@ import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
 import { fmtDate } from "../../lib/utils";
 import {
-  PageHeader, Card, Table, Th, Td, Tr,
-  Badge, Button, Modal, FormGroup, Input, Select, EmptyState,
+  Card, Table, Th, Td, Tr,
+  Badge, Button, Modal, FormGroup, Input, Select, EmptyState, KpiCard,
 } from "../../components/UI";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -95,28 +95,37 @@ export default function Users() {
 
   return (
     <div className="p-6 max-w-6xl">
-      <PageHeader title="Usuários & Acesso">
-        <Button variant="primary" onClick={() => setInviteOpen(true)}>+ Convidar Usuário</Button>
-      </PageHeader>
+      {/* Hero Section */}
+      <div style={{ background: `linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(59, 130, 246, 0.1))` }} className="rounded-2xl p-6 pt-8 mb-6 border border-red-500/20">
+        <h1 className="text-2xl font-bold mb-1">Gerenciamento de Usuários</h1>
+        <div style={{ color: "var(--muted)" }} className="text-sm mb-4">Controle de acesso, papéis, convites e auditoria de segurança</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <KpiCard label="Usuários Ativos" value={users.filter(u => u.status === "active").length} color="var(--green)" />
+          <KpiCard label="Pendentes" value={users.filter(u => u.status === "pending").length} color="var(--yellow)" />
+          <KpiCard label="Suspensos" value={users.filter(u => u.status === "suspended").length} color="var(--red)" />
+          <Button variant="primary" onClick={() => setInviteOpen(true)}>+ Convidar Usuário</Button>
+        </div>
+      </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-5 p-1 rounded-xl w-fit" style={{ background: "var(--surface2)" }}>
-        {(["users", "invites", "audit"] as const).map(t => (
+      <div className="flex gap-1 mb-5 p-1 rounded-xl w-fit" style={{ background: "var(--surface2)" }} className="animation-fade-in">
+        {(["users", "invites", "audit"] as const).map((t, idx) => (
           <button key={t} onClick={() => setTab(t)}
-            className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
+            className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all animation-fade-in"
             style={{
               background: tab === t ? "var(--surface)" : "transparent",
               color: tab === t ? "var(--text)" : "var(--muted)",
               border: tab === t ? "1px solid var(--border)" : "1px solid transparent",
+              animationDelay: `${idx * 0.05}s`,
             }}>
-            {{ users: "Usuários", invites: "Convites", audit: "Audit Log" }[t]}
+            {{ users: "👥 Usuários", invites: "📨 Convites", audit: "📋 Auditoria" }[t]}
           </button>
         ))}
       </div>
 
       {/* ── Usuários ── */}
       {tab === "users" && (
-        <Card>
+        <Card className="animation-fade-in">
           {users.length ? (
             <Table>
               <thead><tr><Th>Usuário</Th><Th>E-mail</Th><Th>Papel</Th><Th>Status</Th><Th>Último login</Th><Th></Th></tr></thead>
@@ -177,7 +186,7 @@ export default function Users() {
 
       {/* ── Convites ── */}
       {tab === "invites" && (
-        <Card>
+        <Card className="animation-fade-in">
           {invites.length ? (
             <Table>
               <thead><tr><Th>E-mail</Th><Th>Papel</Th><Th>Status</Th><Th>Expira em</Th><Th>Criado</Th></tr></thead>
@@ -203,7 +212,7 @@ export default function Users() {
 
       {/* ── Audit Log ── */}
       {tab === "audit" && (
-        <Card>
+        <Card className="animation-fade-in">
           {audit.length ? (
             <Table>
               <thead><tr><Th>Ação</Th><Th>Usuário ID</Th><Th>Detalhe</Th><Th>IP</Th><Th>Data</Th></tr></thead>

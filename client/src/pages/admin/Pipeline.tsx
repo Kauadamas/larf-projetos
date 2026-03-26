@@ -2,7 +2,7 @@ import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
 import { fmtCurrency, today } from "../../lib/utils";
-import { PageHeader, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, KanbanCol } from "../../components/UI";
+import { Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, KanbanCol, KpiCard } from "../../components/UI";
 
 const STAGES = [
   { k: "lead", l: "Lead", c: "var(--muted)" },
@@ -50,10 +50,19 @@ export default function Pipeline() {
   }
 
   return (
-    <div className="p-6">
-      <PageHeader title={`Pipeline — ${fmtCurrency(openTotal)} em aberto`}>
-        <Button variant="primary" onClick={() => openCreate()}>+ Nova Oportunidade</Button>
-      </PageHeader>
+    <div className="p-6 max-w-7xl">
+      {/* Hero Section */}
+      <div style={{ background: `linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(168, 85, 247, 0.1))` }} className="rounded-2xl p-6 pt-8 mb-6 border border-purple-500/20">
+        <h1 className="text-2xl font-bold mb-1">Pipeline de Vendas</h1>
+        <div style={{ color: "var(--muted)" }} className="text-sm mb-4">Gerenciador de oportunidades durante o ciclo de vendas</div>
+        <div className="flex items-end gap-3">
+          <KpiCard label="Aberto em Pipeline" value={fmtCurrency(openTotal)} color="var(--accent)" />
+          <KpiCard label="Oportunidades" value={cards.filter(c => !["ganho","perdido"].includes(c.stage)).length} color="var(--blue)" />
+          <KpiCard label="Ganhadas" value={fmtCurrency(cards.filter(c => c.stage === "ganho").reduce((s, c) => s + Number(c.value || 0), 0))} color="var(--green)" />
+          <KpiCard label="Perdidas" value={fmtCurrency(cards.filter(c => c.stage === "perdido").reduce((s, c) => s + Number(c.value || 0), 0))} color="var(--red)" />
+          <Button variant="primary" onClick={() => openCreate()} className="ml-auto">+ Nova Oportunidade</Button>
+        </div>
+      </div>
 
       {cards.length === 0 ? (
         <div className="rounded-xl p-12 text-center" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
@@ -61,26 +70,31 @@ export default function Pipeline() {
             action={<Button variant="primary" onClick={() => openCreate()}>+ Adicionar Oportunidade</Button>} />
         </div>
       ) : (
-        <div className="kanban-board pb-4">
-          {STAGES.map(st => {
+        <div className="kanban-board pb-4 animation-fade-in">
+          {STAGES.map((st, idx) => {
             const stCards = cards.filter(c => c.stage === st.k);
             const stTotal = stCards.reduce((s, c) => s + Number(c.value || 0), 0);
             return (
-              <KanbanCol key={st.k} title={`${st.l} · ${fmtCurrency(stTotal)}`} color={st.c} count={stCards.length} onAdd={() => openCreate(st.k)}>
-                {stCards.map(c => (
-                  <div key={c.id} onClick={() => openEdit(c)}
-                    className="p-3 rounded-xl mb-2 cursor-pointer transition-all"
-                    style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--accent)")}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--border)")}>
-                    <div className="font-semibold text-sm mb-1.5">{c.clientName}</div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-xs" style={{ color: "var(--green)" }}>{fmtCurrency(c.value)}</span>
-                      <span className="text-xs" style={{ color: "var(--muted)" }}>{c.probability}% prob.</span>
-                      {c.expectedClose && <span className="text-xs" style={{ color: "var(--muted)" }}>📅 {c.expectedClose}</span>}
+              <div key={st.k} className="animation-slide-up" style={{ animationDelay: `${idx * 0.05}s` }}>
+                <KanbanCol title={`${st.l} · ${fmtCurrency(stTotal)}`} color={st.c} count={stCards.length} onAdd={() => openCreate(st.k)}>
+                  {stCards.map((c, i) => (
+                    <div key={c.id} onClick={() => openEdit(c)}
+                      className="p-4 rounded-xl mb-3 cursor-pointer transition-all animation-fade-in"
+                      style={{ background: "var(--surface)", border: "2px solid var(--border)", animationDelay: `${i * 0.05}s` }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = st.c; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.transform = "none"; }}>
+                      <div className="font-bold text-sm mb-2" style={{ color: st.c }}>{c.clientName}</div>
+                      <div className="bg-opacity-10 rounded mb-2 p-2" style={{ background: st.c, opacity: 0.1 }}>
+                        <span className="font-mono font-bold text-base" style={{ color: "var(--green)" }}>{fmtCurrency(c.value)}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs mb-2">
+                        <span className="px-2 py-0.5 rounded" style={{ background: "var(--surface2)", color: "var(--accent)" }}>🎯 {c.probability}%</span>
+                        {c.expectedClose && <span style={{ color: "var(--muted)" }}>📅 {c.expectedClose}</span>}
+                      </div>
+                      {c.notes && <div className="text-xs p-2 rounded" style={{ background: "var(--surface2)", color: "var(--muted)" }}>{c.notes.slice(0, 50)}...</div>}
                     </div>
-                    {c.notes && <div className="text-xs mt-1.5" style={{ color: "var(--muted)" }}>{c.notes.slice(0, 60)}</div>}
-                  </div>
+                </KanbanCol>
+              </div>
                 ))}
               </KanbanCol>
             );

@@ -14,6 +14,20 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function start() {
+  console.log("═══════════════════════════════════════");
+  console.log("✨ LARF Projetos — Iniciando...");
+  console.log("═══════════════════════════════════════");
+  console.log("[ENV] NODE_ENV:", process.env.NODE_ENV);
+  console.log("[ENV] DATABASE_URL:", process.env.DATABASE_URL ? "✓ Configurado" : "✗ NÃO CONFIGURADO");
+  console.log("[ENV] JWT_SECRET:", process.env.JWT_SECRET ? `✓ Configurado (${process.env.JWT_SECRET.length} chars)` : "✗ NÃO CONFIGURADO");
+  console.log("[ENV] RESEND_API_KEY:", process.env.RESEND_API_KEY ? "✓ Configurado" : "(opcional)");
+  console.log("═══════════════════════════════════════\n");
+
+  if (!process.env.JWT_SECRET) {
+    console.error("❌ FATAL: JWT_SECRET não está definido!");
+    process.exit(1);
+  }
+
   const app = express();
 
   app.use(helmet({ contentSecurityPolicy: false }));

@@ -11,7 +11,16 @@ export const TOKEN_VERSION  = 1; // bump to invalidate all tokens
 // ─── Secret ───────────────────────────────────────────────────────────────────
 function getSecret(): Uint8Array {
   const s = ENV.jwtSecret;
-  if (!s || s.length < 32) throw new Error("JWT_SECRET precisa ter no mínimo 32 caracteres.");
+  if (!s || s.length === 0) {
+    const msg = "FATAL: JWT_SECRET não está configurado. Verifique as variáveis de ambiente no Railway.";
+    console.error(msg);
+    throw new Error(msg);
+  }
+  if (s.length < 32) {
+    const msg = `FATAL: JWT_SECRET tem apenas ${s.length} caracteres, precisa de no mínimo 32.`;
+    console.error(msg);
+    throw new Error(msg);
+  }
   return new TextEncoder().encode(s);
 }
 

@@ -54,7 +54,7 @@ export default function Dashboard() {
             </Table>
           ) : (
             <EmptyState icon="rocket" title="Nenhum projeto ativo" action={<Button variant="primary" size="sm" onClick={() => navigate("/admin/projects")}>+ Novo Projeto</Button>} />
-          )}}
+          )}
         </Card>
 
         {/* Pending invoices */}

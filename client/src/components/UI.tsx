@@ -68,24 +68,24 @@ export function CardBody({ children, className, noPad }: { children:ReactNode; c
 
 export function KpiCard({ label, value, sub, color="var(--orange)", icon, trend }: { label:string; value:string|number; sub?:string; color?:string; icon?:ReactNode; trend?:number }) {
   return (
-    <div className="glass-card p-5 relative overflow-hidden transition"
+    <div className="glass-card p-3 md:p-5 relative overflow-hidden transition"
       onMouseEnter={e=>{const el=e.currentTarget as HTMLElement;el.style.boxShadow="var(--shadow-lg)";el.style.transform="translateY(-3px)"}}
       onMouseLeave={e=>{const el=e.currentTarget as HTMLElement;el.style.boxShadow="var(--shadow-sm)";el.style.transform=""}}>
       <div style={{ position:"absolute", top:0, left:0, right:0, height:"3px", background:color, borderRadius:"12px 12px 0 0" }}/>
       <div style={{ position:"absolute", top:0, left:0, right:0, height:"70px", background:`linear-gradient(to bottom,${color}09,transparent)`, pointerEvents:"none" }}/>
       <div className="flex items-start justify-between">
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color:"var(--text-lo)" }}>{label}</div>
-          <div className="text-3xl font-extrabold tracking-tight font-mono" style={{ color:"var(--navy)" }}>{value}</div>
-          {sub && <div className="text-xs mt-1.5" style={{ color:"var(--text-lo)" }}>{sub}</div>}
+          <div className="text-xs font-bold uppercase tracking-widest mb-1 md:mb-3" style={{ color:"var(--text-lo)" }}>{label}</div>
+          <div className="text-2xl md:text-3xl font-extrabold tracking-tight font-mono" style={{ color:"var(--navy)" }}>{value}</div>
+          {sub && <div className="text-xs mt-1" style={{ color:"var(--text-lo)" }}>{sub}</div>}
           {trend !== undefined && (
-            <div className={`flex items-center gap-1 text-xs font-bold mt-2 ${trend>=0?"text-green":"text-red"}`}>
+            <div className={`flex items-center gap-1 text-xs font-bold mt-1 md:mt-2 ${trend>=0?"text-green":"text-red"}`}>
               {trend>=0 ? <TrendingUp size={12}/> : <TrendingDown size={12}/>}
               {Math.abs(trend)}%
             </div>
           )}
         </div>
-        {icon && <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background:`${color}14`, color }}>{icon}</div>}
+        {icon && <div className="w-9 h-9 md:w-11 md:h-11 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0" style={{ background:`${color}14`, color }}>{icon}</div>}
       </div>
     </div>
   );
@@ -212,25 +212,26 @@ export function EmptyState({ icon, title, description, action }: { icon?:ReactNo
 
 export function PageHeader({ title, subtitle, count, children }: { title:string; subtitle?:string; count?:number; children?:ReactNode }) {
   return (
-    <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-      <div className="flex-1">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-extrabold tracking-tight" style={{ color:"var(--navy)" }}>{title}</h1>
-          {count !== undefined && <span className="text-xs font-bold px-2.5 py-1 rounded-full font-mono" style={{ background:"rgba(47,55,88,.06)", color:"var(--text-lo)", border:"1px solid var(--border)" }}>{count}</span>}
+    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-4 mb-4 md:mb-6 flex-wrap">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+          <h1 className="text-xl md:text-2xl font-extrabold tracking-tight" style={{ color:"var(--navy)" }}>{title}</h1>
+          {count !== undefined && <span className="text-xs font-bold px-2 md:px-2.5 py-1 rounded-full font-mono" style={{ background:"rgba(47,55,88,.06)", color:"var(--text-lo)", border:"1px solid var(--border)" }}>{count}</span>}
         </div>
-        {subtitle && <p className="text-xs mt-1" style={{ color:"var(--text-lo)" }}>{subtitle}</p>}
+        {subtitle && <p className="text-xs md:text-sm mt-1" style={{ color:"var(--text-lo)" }}>{subtitle}</p>}
       </div>
-      <div className="flex items-center gap-2 flex-wrap">{children}</div>
+      <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">{children}</div>
     </div>
   );
 }
 
 export function SearchInput({ value, onChange, placeholder="Buscar...", width="220px" }: { value:string; onChange:(v:string)=>void; placeholder?:string; width?:string }) {
   return (
-    <div className="relative flex-shrink-0" style={{ width }}>
-      <Search size={13} style={{ position:"absolute", left:"11px", top:"50%", transform:"translateY(-50%)", color:"var(--text-lo)" }}/>
+    <div className="relative flex-shrink-0 w-full sm:w-auto" style={{ maxWidth: width }}>
+      <Search size={12} className="md:block hidden" style={{ position:"absolute", left:"11px", top:"50%", transform:"translateY(-50%)", color:"var(--text-lo)" }}/>
       <input value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder}
-        style={{ ...inputBase, paddingLeft:"32px", width }} onFocus={onFocusIn} onBlur={onFocusOut}/>
+        className="w-full py-1.5 md:py-2 px-3 md:px-3 text-xs md:text-sm rounded-lg md:rounded-md"
+        style={{ ...inputBase, paddingLeft: "28px" }} onFocus={onFocusIn} onBlur={onFocusOut}/>
     </div>
   );
 }

@@ -53,7 +53,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: "var(--bg)" }}>
+    <div className="min-h-screen flex flex-col lg:flex-row" style={{ background: "var(--bg)" }}>
 
       {/* ── Left — Navy brand panel ── */}
       <div className="hidden lg:flex flex-col justify-between flex-shrink-0"

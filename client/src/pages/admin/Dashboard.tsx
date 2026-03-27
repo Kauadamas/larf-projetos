@@ -21,8 +21,7 @@ export default function Dashboard() {
         <p className="text-sm mt-0.5" style={{ color: "var(--text-lo)" }}>Visão geral da operação LARF</p>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3 mb-4 md:mb-6">
         <KpiCard label="Receita Recebida" value={fmtCurrency(f?.recebido)} color="var(--green)" />
         <KpiCard label="A Receber" value={fmtCurrency(f?.pendente)} sub={`${stats?.financial.pendente ? "pendente(s)" : ""}`} color="var(--yellow)" />
         <KpiCard label="Resultado" value={fmtCurrency(f?.liquido)} color={(f?.liquido ?? 0) >= 0 ? "var(--green)" : "var(--red)"} />

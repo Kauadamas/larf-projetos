@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
+import { Key, AlertOctagon, Trash2 } from "lucide-react";
 import { fmtDate } from "../../lib/utils";
 import {
   PageHeader, Card, Table, Th, Td, Tr,
@@ -158,12 +159,12 @@ export default function Users() {
                     <Td><span className="text-xs" style={{ color: "var(--text-lo)" }}>{u.lastLoginAt ? fmtDate(u.lastLoginAt) : "Nunca"}</span></Td>
                     <Td>
                       <div className="flex gap-1.5">
-                        <Button size="sm" variant="ghost" onClick={() => { setPwUserId(u.id); setNewPw(""); setPwModal(true); }}>🔑</Button>
+                        <Button size="sm" variant="ghost" title="Resetar senha" onClick={() => { setPwUserId(u.id); setNewPw(""); setPwModal(true); }} icon={<Key size={14} />} />
                         {u.id !== me?.id && u.status !== "suspended" && (
-                          <Button size="sm" variant="danger" onClick={() => { if (confirm(`Suspender ${u.name}?`)) suspend.mutate({ userId: u.id }); }}>⛔</Button>
+                          <Button size="sm" variant="danger" title="Suspender" onClick={() => { if (confirm(`Suspender ${u.name}?`)) suspend.mutate({ userId: u.id }); }} icon={<AlertOctagon size={14} />} />
                         )}
                         {u.id !== me?.id && (
-                          <Button size="sm" variant="danger" onClick={() => { if (confirm(`Excluir ${u.name}? Esta ação é irreversível.`)) del.mutate({ userId: u.id }); }}>🗑️</Button>
+                          <Button size="sm" variant="danger" title="Excluir" onClick={() => { if (confirm(`Excluir ${u.name}? Esta ação é irrevelsável.`)) del.mutate({ userId: u.id }); }} icon={<Trash2 size={14} />} />
                         )}
                       </div>
                     </Td>
@@ -171,7 +172,7 @@ export default function Users() {
                 ))}
               </tbody>
             </Table>
-          ) : <EmptyState icon="👥" title="Nenhum usuário cadastrado" action={<Button variant="primary" onClick={() => setInviteOpen(true)}>+ Convidar Usuário</Button>} />}
+          ) : <EmptyState icon="users" title="Nenhum usuário cadastrado" action={<Button variant="primary" onClick={() => setInviteOpen(true)}>+ Convidar Usuário</Button>} />}
         </Card>
       )}
 
@@ -197,7 +198,7 @@ export default function Users() {
                 ))}
               </tbody>
             </Table>
-          ) : <EmptyState icon="📨" title="Nenhum convite enviado ainda" action={<Button variant="primary" onClick={() => setInviteOpen(true)}>+ Convidar Usuário</Button>} />}
+          ) : <EmptyState icon="document" title="Nenhum convite enviado ainda" action={<Button variant="primary" onClick={() => setInviteOpen(true)}>+ Convidar Usuário</Button>} />}
         </Card>
       )}
 
@@ -219,7 +220,7 @@ export default function Users() {
                 ))}
               </tbody>
             </Table>
-          ) : <EmptyState icon="📋" title="Nenhuma entrada no audit log" />}
+          ) : <EmptyState icon="task" title="Nenhuma entrada no audit log" />}
         </Card>
       )}
 

@@ -1,5 +1,5 @@
 import { type ReactNode, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, forwardRef } from "react";
-import { X, Search, TrendingUp, TrendingDown, Plus, Check, AlertCircle, Info } from "lucide-react";
+import { X, Search, TrendingUp, TrendingDown, Plus, Check, AlertCircle, Info, Rocket, CheckCircle2, DollarSign, Users, FileText, Eye, Edit2, Trash2, Clock, Calendar, FileCheck, BarChart3 } from "lucide-react";
 import { getBadgeClass, getBadgeLabel } from "../lib/utils";
 
 export function Badge({ status, label }: { status: string; label?: string }) {
@@ -20,8 +20,8 @@ const BVS: Record<BV, React.CSSProperties> = {
   outline:   { background:"transparent",   color:"var(--navy)",     border:"1px solid var(--border-mid)" },
 };
 const BSS: Record<BS, string> = {
-  xs:"px-2.5 py-1 text-xs rounded", sm:"px-3 py-1.5 text-sm rounded-md",
-  md:"px-4 py-2.5 text-base rounded-lg", lg:"px-6 py-3 text-lg rounded-xl",
+  xs:"px-2 py-1 text-xs rounded text-xs", sm:"px-3 py-2 text-sm rounded-md",
+  md:"px-4 py-2.5 text-base rounded-lg", lg:"px-6 py-3 text-base rounded-xl",
 };
 
 export const Button = forwardRef<HTMLButtonElement, BtnProps>(({ variant="secondary", size="sm", loading, icon, children, style, className, ...rest }, ref) => (
@@ -176,13 +176,36 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size="
   );
 }
 
-export function EmptyState({ icon, title, description, action }: { icon?:ReactNode; title:string; description?:string; action?:ReactNode }) {
+export function EmptyState({ icon, title, description, action }: { icon?:ReactNode|string; title:string; description?:string; action?:ReactNode }) {
+  // Map string icons to lucide components
+  const iconMap: Record<string, React.ComponentType<any>> = {
+    "rocket": Rocket,
+    "check": CheckCircle2,
+    "money": DollarSign,
+    "users": Users,
+    "trending": TrendingUp,
+    "document": FileText,
+    "view": Eye,
+    "edit": Edit2,
+    "delete": Trash2,
+    "clock": Clock,
+    "calendar": Calendar,
+    "task": FileCheck,
+    "chart": BarChart3,
+  };
+  
+  let iconElement = icon;
+  if (typeof icon === "string" && iconMap[icon]) {
+    const IconComp = iconMap[icon];
+    iconElement = <IconComp size={32} strokeWidth={1.5} />;
+  }
+  
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-      {icon && <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5" style={{ background:"var(--orange-alpha)", border:"1px solid var(--orange-border)", color:"var(--orange)" }}>{icon}</div>}
-      <p className="font-bold text-base mb-1" style={{ color:"var(--navy)" }}>{title}</p>
-      {description && <p className="text-sm mb-4" style={{ color:"var(--text-lo)" }}>{description}</p>}
-      {action && <div className="mt-4">{action}</div>}
+    <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+      {iconElement && <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 flex-shrink-0" style={{ background:"rgba(249,115,22,.08)", border:"1px solid rgba(249,115,22,.2)", color:"var(--orange)" }}>{iconElement}</div>}
+      <p className="font-bold text-lg mb-2 max-w-sm" style={{ color:"var(--navy)" }}>{title}</p>
+      {description && <p className="text-sm mb-6 max-w-sm" style={{ color:"var(--text-lo)" }}>{description}</p>}
+      {action && <div className="mt-2">{action}</div>}
     </div>
   );
 }
@@ -190,14 +213,14 @@ export function EmptyState({ icon, title, description, action }: { icon?:ReactNo
 export function PageHeader({ title, subtitle, count, children }: { title:string; subtitle?:string; count?:number; children?:ReactNode }) {
   return (
     <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-      <div>
+      <div className="flex-1">
         <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-extrabold tracking-tight" style={{ color:"var(--navy)" }}>{title}</h1>
-          {count !== undefined && <span className="text-xs font-bold px-2.5 py-1 rounded-full font-mono" style={{ background:"var(--navy-alpha)", color:"var(--navy)", border:"1px solid var(--border)" }}>{count}</span>}
+          <h1 className="text-2xl font-extrabold tracking-tight" style={{ color:"var(--navy)" }}>{title}</h1>
+          {count !== undefined && <span className="text-xs font-bold px-2.5 py-1 rounded-full font-mono" style={{ background:"rgba(47,55,88,.06)", color:"var(--text-lo)", border:"1px solid var(--border)" }}>{count}</span>}
         </div>
-        {subtitle && <p className="text-sm mt-1" style={{ color:"var(--text-lo)" }}>{subtitle}</p>}
+        {subtitle && <p className="text-xs mt-1" style={{ color:"var(--text-lo)" }}>{subtitle}</p>}
       </div>
-      <div className="flex items-center gap-2">{children}</div>
+      <div className="flex items-center gap-2 flex-wrap">{children}</div>
     </div>
   );
 }

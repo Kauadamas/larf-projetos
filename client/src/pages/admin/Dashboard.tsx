@@ -53,8 +53,8 @@ export default function Dashboard() {
               </tbody>
             </Table>
           ) : (
-            <EmptyState icon="🚀" title="Nenhum projeto ativo" action={<Button variant="primary" size="sm" onClick={() => navigate("/admin/projects")}>+ Novo Projeto</Button>} />
-          )}
+            <EmptyState icon="rocket" title="Nenhum projeto ativo" action={<Button variant="primary" size="sm" onClick={() => navigate("/admin/projects")}>+ Novo Projeto</Button>} />
+          )}}
         </Card>
 
         {/* Pending invoices */}
@@ -78,7 +78,7 @@ export default function Dashboard() {
               </tbody>
             </Table>
           ) : (
-            <EmptyState icon="✅" title="Tudo em dia!" action={<Button variant="primary" size="sm" onClick={() => navigate("/admin/invoices")}>+ Lançamento</Button>} />
+            <EmptyState icon="check" title="Tudo em dia!" action={<Button variant="primary" size="sm" onClick={() => navigate("/admin/invoices")}>+ Lançamento</Button>} />
           )}
         </Card>
       </div>
@@ -104,7 +104,7 @@ export default function Dashboard() {
               </tbody>
             </Table>
           ) : (
-            <EmptyState icon="✅" title="Sem tarefas pendentes" />
+            <EmptyState icon="check" title="Sem tarefas pendentes" />
           )}
         </Card>
 
@@ -113,7 +113,7 @@ export default function Dashboard() {
           <CardHeader><CardTitle>Resumo Financeiro</CardTitle></CardHeader>
           <CardBody>
             {(f?.recebido === 0 && f?.despesas === 0) ? (
-              <EmptyState icon="💰" title="Nenhum lançamento ainda" action={<Button variant="primary" size="sm" onClick={() => navigate("/admin/invoices")}>+ Lançamento</Button>} />
+              <EmptyState icon="money" title="Nenhum lançamento ainda" action={<Button variant="primary" size="sm" onClick={() => navigate("/admin/invoices")}>+ Lançamento</Button>} />
             ) : (
               <div className="space-y-3">
                 {[

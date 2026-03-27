@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
+import { Calendar } from "lucide-react";
 import { fmtCurrency, today } from "../../lib/utils";
 import { PageHeader, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, KanbanCol } from "../../components/UI";
 
@@ -56,8 +57,8 @@ export default function Pipeline() {
       </PageHeader>
 
       {cards.length === 0 ? (
-        <div className="rounded-xl p-12 text-center" style={{ background: "var(--glass-hi)", border: "1px solid var(--border)" }}>
-          <EmptyState icon="📈" title="Nenhuma oportunidade no pipeline"
+        <div className="rounded-xl p-12 text-center" style={{ background: "var(--bg-raised)", border: "1px solid var(--border)" }}>
+          <EmptyState icon="trending" title="Nenhuma oportunidade no pipeline"
             action={<Button variant="primary" onClick={() => openCreate()}>+ Adicionar Oportunidade</Button>} />
         </div>
       ) : (
@@ -70,14 +71,14 @@ export default function Pipeline() {
                 {stCards.map(c => (
                   <div key={c.id} onClick={() => openEdit(c)}
                     className="p-3 rounded-xl mb-2 cursor-pointer transition-all"
-                    style={{ background: "var(--glass-hi)", border: "1px solid var(--border)" }}
+                    style={{ background: "var(--bg-raised)", border: "1px solid var(--border)" }}
                     onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--accent)")}
                     onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--border)")}>
                     <div className="font-semibold text-sm mb-1.5">{c.clientName}</div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono text-xs" style={{ color: "var(--green)" }}>{fmtCurrency(c.value)}</span>
                       <span className="text-xs" style={{ color: "var(--text-lo)" }}>{c.probability}% prob.</span>
-                      {c.expectedClose && <span className="text-xs" style={{ color: "var(--text-lo)" }}>📅 {c.expectedClose}</span>}
+                      {c.expectedClose && <span className="text-xs" style={{ color: "var(--text-lo)" }}><Calendar size={12} className="inline mr-1" />{c.expectedClose}</span>}
                     </div>
                     {c.notes && <div className="text-xs mt-1.5" style={{ color: "var(--text-lo)" }}>{c.notes.slice(0, 60)}</div>}
                   </div>

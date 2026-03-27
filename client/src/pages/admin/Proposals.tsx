@@ -79,9 +79,9 @@ export default function Proposals() {
                   <Td><Badge status={p.status} /></Td>
                   <Td>
                     <div className="flex gap-1.5">
-                      <Button size="sm" variant="ghost" onClick={() => { setViewId(p.id); setViewModal(true); }}>👁️</Button>
-                      <Button size="sm" variant="ghost" onClick={() => openEdit(p)}>✏️</Button>
-                      <Button size="sm" variant="danger" onClick={() => { if (confirm("Excluir proposta?")) del.mutate({ id: p.id }); }}>🗑️</Button>
+                      <Button size="sm" variant="ghost" title="Visualizar" onClick={() => { setViewId(p.id); setViewModal(true); }} icon={<Eye size={14} />} />
+                      <Button size="sm" variant="ghost" title="Editar" onClick={() => openEdit(p)} icon={<Edit2 size={14} />} />
+                      <Button size="sm" variant="danger" title="Excluir" onClick={() => { if (confirm("Excluir proposta?")) del.mutate({ id: p.id }); }} icon={<Trash2 size={14} />} />
                     </div>
                   </Td>
                 </Tr>
@@ -89,7 +89,7 @@ export default function Proposals() {
             </tbody>
           </Table>
         ) : (
-          <EmptyState icon="📄" title="Nenhuma proposta criada ainda"
+          <EmptyState icon="document" title="Nenhuma proposta criada ainda"
             action={<Button variant="primary" onClick={openCreate}>+ Criar Primeira Proposta</Button>} />
         )}
       </Card>

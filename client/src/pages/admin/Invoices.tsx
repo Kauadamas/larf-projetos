@@ -65,7 +65,7 @@ export default function Invoices() {
                       {i.status === "pendente" && (
                         <Button size="sm" variant="success" onClick={() => markPaid.mutate({ id: i.id })}>✓ Recebido</Button>
                       )}
-                      <Button size="sm" variant="danger" onClick={() => { if (confirm("Excluir lançamento?")) del.mutate({ id: i.id }); }}>🗑️</Button>
+                      <Button size="sm" variant="danger" title="Excluir" onClick={() => { if (confirm("Excluir lançamento?")) del.mutate({ id: i.id }); }} icon={<Trash2 size={14} />} />
                     </div>
                   </Td>
                 </Tr>
@@ -73,7 +73,7 @@ export default function Invoices() {
             </tbody>
           </Table>
         ) : (
-          <EmptyState icon="💳" title="Nenhum lançamento registrado ainda"
+          <EmptyState icon="money" title="Nenhum lançamento registrado ainda"
             action={<Button variant="primary" onClick={() => { setForm(empty); setModal(true); }}>+ Novo Lançamento</Button>} />
         )}
       </Card>

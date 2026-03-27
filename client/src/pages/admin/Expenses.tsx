@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import { fmtCurrency, fmtDate, today } from "../../lib/utils";
 import { PageHeader, Card, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, KpiCard } from "../../components/UI";
 
@@ -66,14 +67,14 @@ export default function Expenses() {
                       <Td><span className="font-mono font-bold" style={{ color: "var(--red)" }}>- {fmtCurrency(e.value)}</span></Td>
                       <Td>{e.paid ? <Badge status="ativo" /> : <Badge status="pendente" />}</Td>
                       <Td>
-                        <Button size="sm" variant="danger" onClick={() => { if (confirm("Excluir?")) del.mutate({ id: e.id }); }}>🗑️</Button>
+                        <Button size="sm" variant="danger" title="Excluir" onClick={() => { if (confirm("Excluir?")) del.mutate({ id: e.id }); }} icon={<Trash2 size={14} />} />
                       </Td>
                     </Tr>
                   ))}
                 </tbody>
               </Table>
             ) : (
-              <EmptyState icon="💸" title="Nenhuma despesa registrada ainda"
+              <EmptyState icon="money" title="Nenhuma despesa registrada ainda"
                 action={<Button variant="primary" onClick={() => { setForm(empty); setModal(true); }}>+ Registrar Despesa</Button>} />
             )}
           </Card>

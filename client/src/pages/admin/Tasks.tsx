@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
+import { User, Calendar } from "lucide-react";
 import { fmtDate, isOverdue } from "../../lib/utils";
 import { PageHeader, Badge, Button, Modal, FormGroup, Input, Select, Textarea, KanbanCol, EmptyState } from "../../components/UI";
 
@@ -62,7 +63,7 @@ export default function Tasks() {
 
       {projects.length === 0 ? (
         <div className="rounded-xl p-12" style={{ background: "var(--glass-hi)", border: "1px solid var(--border)" }}>
-          <EmptyState icon="📋" title="Crie um projeto primeiro para organizar tarefas" />
+          <EmptyState icon="task" title="Crie um projeto primeiro para organizar tarefas" />
         </div>
       ) : (
         <div className="kanban-board pb-4">
@@ -81,11 +82,11 @@ export default function Tasks() {
                       <Badge status={t.priority} />
                       {t.projectId && <span className="text-xs" style={{ color: "var(--text-lo)" }}>{projectMap[t.projectId]?.slice(0, 20)}</span>}
                     </div>
-                    {t.assignee && <div className="text-xs mt-1.5" style={{ color: "var(--text-lo)" }}>👤 {t.assignee}</div>}
+                    {t.assignee && <div className="text-xs mt-1.5 flex items-center gap-1" style={{ color: "var(--text-lo)" }}><User size={12} /> {t.assignee}</div>}
                     {t.deadline && (
-                      <div className={`text-xs mt-1 ${isOverdue(t.deadline) && t.status !== "done" ? "text-red-400 font-semibold" : ""}`}
+                      <div className={`text-xs mt-1 flex items-center gap-1 ${isOverdue(t.deadline) && t.status !== "done" ? "text-red-400 font-semibold" : ""}`}
                         style={{ color: isOverdue(t.deadline) && t.status !== "done" ? undefined : "var(--text-lo)" }}>
-                        📅 {fmtDate(t.deadline)}
+                        <Calendar size={12} /> {fmtDate(t.deadline)}
                       </div>
                     )}
                   </div>

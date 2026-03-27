@@ -84,7 +84,7 @@ export default function Time() {
                 {projects.filter(p => p.status === "em_andamento").map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
               </Select>
               <Button variant={running ? "danger" : "primary"} onClick={toggleTimer}>
-                {running ? "⏹ Parar e Registrar" : "▶ Iniciar Timer"}
+                {running ? "Parar e Registrar" : "Iniciar Timer"}
               </Button>
             </div>
           </div>
@@ -108,14 +108,14 @@ export default function Time() {
                   <Td><span className="font-mono font-bold" style={{ color: "var(--accent)" }}>{e.hours}h</span></Td>
                   <Td>{e.billable ? <Badge status="ativo" /> : <Badge status="inativo" />}</Td>
                   <Td>
-                    <Button size="sm" variant="danger" onClick={() => { if (confirm("Remover?")) del.mutate({ id: e.id }); }}>🗑️</Button>
+                    <Button size="sm" variant="danger" title="Remover" onClick={() => { if (confirm("Remover?")) del.mutate({ id: e.id }); }} icon={<Trash2 size={14} />} />
                   </Td>
                 </Tr>
               ))}
             </tbody>
           </Table>
         ) : (
-          <EmptyState icon="⏱" title="Nenhuma hora registrada ainda. Use o timer acima ou registre manualmente." />
+          <EmptyState icon="clock" title="Nenhuma hora registrada ainda. Use o timer acima ou registre manualmente." />
         )}
       </Card>
 

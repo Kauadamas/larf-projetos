@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
+import { Edit2, Trash2 } from "lucide-react";
 import { PageHeader, Card, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, SearchInput, EmptyState } from "../../components/UI";
 
 const ORIGINS = ["Indicação", "Instagram", "Google", "Facebook", "LinkedIn", "Site", "Cold Outreach", "Outro"];
@@ -56,8 +57,8 @@ export default function Clients() {
                   <Td><Badge status={c.status} /></Td>
                   <Td>
                     <div className="flex gap-1.5">
-                      <Button size="sm" variant="ghost" onClick={() => openEdit(c)}>✏️</Button>
-                      <Button size="sm" variant="danger" onClick={() => { if (confirm("Excluir?")) del.mutate({ id: c.id }); }}>🗑️</Button>
+                      <Button size="sm" variant="ghost" title="Editar" onClick={() => openEdit(c)} icon={<Edit2 size={14} />} />
+                      <Button size="sm" variant="danger" title="Excluir" onClick={() => { if (confirm("Excluir?")) del.mutate({ id: c.id }); }} icon={<Trash2 size={14} />} />
                     </div>
                   </Td>
                 </Tr>
@@ -65,7 +66,7 @@ export default function Clients() {
             </tbody>
           </Table>
         ) : (
-          <EmptyState icon="👥" title={search ? "Nenhum cliente encontrado" : "Nenhum cliente cadastrado ainda"}
+          <EmptyState icon="users" title={search ? "Nenhum cliente encontrado" : "Nenhum cliente cadastrado ainda"}
             action={!search ? <Button variant="primary" onClick={openCreate}>+ Cadastrar Primeiro Cliente</Button> : undefined} />
         )}
       </Card>

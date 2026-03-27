@@ -1,399 +1,273 @@
 import { type ReactNode, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, forwardRef } from "react";
-import { X, ChevronDown } from "lucide-react";
+import { X, Search, TrendingUp, TrendingDown, Plus, Check, AlertCircle, Info } from "lucide-react";
 import { getBadgeClass, getBadgeLabel } from "../lib/utils";
 
-// ─── Badge ────────────────────────────────────────────────────────────────────
 export function Badge({ status, label }: { status: string; label?: string }) {
-  return (
-    <span className={`badge badge-${getBadgeClass(status)}`}>
-      {label || getBadgeLabel(status)}
-    </span>
-  );
+  return <span className={`badge badge-${getBadgeClass(status)}`}>{label || getBadgeLabel(status)}</span>;
 }
 
-// ─── Button ───────────────────────────────────────────────────────────────────
-type BtnVariant = "primary" | "secondary" | "danger" | "success" | "ghost" | "outline";
-type BtnSize = "xs" | "sm" | "md" | "lg";
+type BV = "primary"|"navy"|"secondary"|"danger"|"success"|"ghost"|"outline";
+type BS = "xs"|"sm"|"md"|"lg";
+interface BtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> { variant?: BV; size?: BS; loading?: boolean; icon?: ReactNode; }
 
-interface BtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: BtnVariant;
-  size?: BtnSize;
-  loading?: boolean;
-  icon?: ReactNode;
-}
-
-const variantStyles: Record<BtnVariant, React.CSSProperties> = {
-  primary:   { background: "var(--accent)", color: "#fff", border: "1px solid var(--accent)" },
-  secondary: { background: "var(--bg-subtle)", color: "var(--text-hi)", border: "1px solid var(--border-mid)" },
-  danger:    { background: "var(--red-lo)", color: "#f87171", border: "1px solid rgba(239,68,68,.25)" },
-  success:   { background: "var(--green-lo)", color: "var(--green)", border: "1px solid rgba(16,185,129,.25)" },
-  ghost:     { background: "transparent", color: "var(--text-mid)", border: "1px solid transparent" },
-  outline:   { background: "transparent", color: "var(--text-hi)", border: "1px solid var(--border-mid)" },
+const BVS: Record<BV, React.CSSProperties> = {
+  primary:   { background:"var(--orange)", color:"#fff", border:"1px solid var(--orange)", boxShadow:"0 2px 12px rgba(255,122,0,.32)" },
+  navy:      { background:"var(--navy)",   color:"#fff", border:"1px solid var(--navy)",   boxShadow:"0 2px 12px rgba(47,55,88,.28)" },
+  secondary: { background:"var(--glass-hi)",color:"var(--text)", border:"1px solid var(--border-mid)", boxShadow:"var(--shadow-xs)" },
+  danger:    { background:"var(--red-bg)", color:"#b91c1c", border:"1px solid rgba(239,68,68,.22)" },
+  success:   { background:"var(--green-bg)", color:"#047857", border:"1px solid rgba(16,185,129,.22)" },
+  ghost:     { background:"transparent",   color:"var(--text-mid)", border:"1px solid transparent" },
+  outline:   { background:"transparent",   color:"var(--navy)",     border:"1px solid var(--border-mid)" },
+};
+const BSS: Record<BS, string> = {
+  xs:"px-2.5 py-1 text-xs rounded", sm:"px-3 py-1.5 text-sm rounded-md",
+  md:"px-4 py-2.5 text-base rounded-lg", lg:"px-6 py-3 text-lg rounded-xl",
 };
 
-const sizeStyles: Record<BtnSize, string> = {
-  xs: "px-2 py-1 text-xs rounded",
-  sm: "px-3 py-1.5 text-sm rounded",
-  md: "px-4 py-2 text-base rounded-md",
-  lg: "px-5 py-2.5 text-lg rounded-lg",
-};
-
-export const Button = forwardRef<HTMLButtonElement, BtnProps>(
-  ({ variant = "secondary", size = "sm", loading, icon, children, style, className, ...rest }, ref) => {
-    return (
-      <button
-        ref={ref}
-        className={`inline-flex items-center gap-2 font-medium transition select-none ${sizeStyles[size]} ${className || ""}`}
-        style={{ ...variantStyles[variant], opacity: loading || rest.disabled ? 0.6 : 1, ...style }}
-        disabled={loading || rest.disabled}
-        {...rest}
-      >
-        {loading
-          ? <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-          : icon}
-        {children}
-      </button>
-    );
-  }
-);
+export const Button = forwardRef<HTMLButtonElement, BtnProps>(({ variant="secondary", size="sm", loading, icon, children, style, className, ...rest }, ref) => (
+  <button ref={ref}
+    className={`inline-flex items-center gap-2 font-semibold transition select-none ${BSS[size]} ${className||""}`}
+    style={{ ...BVS[variant], opacity: loading||rest.disabled ? .55 : 1, ...style }}
+    disabled={loading||rest.disabled} {...rest}>
+    {loading ? <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin"/> : icon}
+    {children}
+  </button>
+));
 Button.displayName = "Button";
 
-// Icon-only button
-export function IconButton({ children, title, onClick, variant = "ghost", className }: { children: ReactNode; title?: string; onClick?: () => void; variant?: BtnVariant; className?: string }) {
+export function IconButton({ children, title, onClick, variant="ghost", className }: { children:ReactNode; title?:string; onClick?:()=>void; variant?:BV; className?:string }) {
   return (
-    <button
-      onClick={onClick}
-      title={title}
-      className={`inline-flex items-center justify-center w-7 h-7 rounded transition ${className || ""}`}
-      style={{ ...variantStyles[variant], padding: 0 }}
-    >
+    <button onClick={onClick} title={title}
+      className={`inline-flex items-center justify-center w-8 h-8 rounded-lg transition ${className||""}`}
+      style={{ ...BVS[variant], padding:0 }}>
       {children}
     </button>
   );
 }
 
-// ─── Card ─────────────────────────────────────────────────────────────────────
-interface CardProps { children: ReactNode; className?: string; style?: React.CSSProperties; hover?: boolean; }
-export function Card({ children, className, style, hover }: CardProps) {
+export function Card({ children, className, style, hover }: { children:ReactNode; className?:string; style?:React.CSSProperties; hover?:boolean }) {
   return (
-    <div
-      className={`rounded-lg overflow-hidden ${hover ? "transition cursor-pointer" : ""} ${className || ""}`}
-      style={{ background: "var(--bg-raised)", border: "1px solid var(--border)", ...style }}
-      onMouseEnter={hover ? e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border-hi)"; } : undefined}
-      onMouseLeave={hover ? e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; } : undefined}
-    >
+    <div className={`glass-card overflow-hidden ${hover?"transition cursor-pointer":""} ${className||""}`}
+      style={style}
+      onMouseEnter={hover ? e => { const el = e.currentTarget as HTMLElement; el.style.boxShadow="var(--shadow-lg)"; el.style.transform="translateY(-2px)"; } : undefined}
+      onMouseLeave={hover ? e => { const el = e.currentTarget as HTMLElement; el.style.boxShadow="var(--shadow-sm)"; el.style.transform=""; } : undefined}>
       {children}
     </div>
   );
 }
 
-export function CardHeader({ children, className }: { children: ReactNode; className?: string }) {
+export function CardHeader({ children, className }: { children:ReactNode; className?:string }) {
+  return <div className={`flex items-center justify-between px-5 py-3.5 ${className||""}`} style={{ borderBottom:"1px solid var(--border)", background:"rgba(47,55,88,.02)" }}>{children}</div>;
+}
+export function CardTitle({ children, size="sm" }: { children:ReactNode; size?:"sm"|"md" }) {
+  return <div className={`font-bold ${size==="md"?"text-xl":"text-base"}`} style={{ color:"var(--navy)" }}>{children}</div>;
+}
+export function CardBody({ children, className, noPad }: { children:ReactNode; className?:string; noPad?:boolean }) {
+  return <div className={`${noPad?"":"px-5 py-4"} ${className||""}`}>{children}</div>;
+}
+
+export function KpiCard({ label, value, sub, color="var(--orange)", icon, trend }: { label:string; value:string|number; sub?:string; color?:string; icon?:ReactNode; trend?:number }) {
   return (
-    <div className={`flex items-center justify-between px-5 py-3 ${className || ""}`}
-      style={{ borderBottom: "1px solid var(--border)" }}>
-      {children}
-    </div>
-  );
-}
-
-export function CardTitle({ children, size = "sm" }: { children: ReactNode; size?: "sm" | "md" }) {
-  return <div className={`font-semibold ${size === "md" ? "text-base" : "text-sm"}`} style={{ color: "var(--text-hi)" }}>{children}</div>;
-}
-
-export function CardBody({ children, className, noPad }: { children: ReactNode; className?: string; noPad?: boolean }) {
-  return <div className={`${noPad ? "" : "px-5 py-4"} ${className || ""}`}>{children}</div>;
-}
-
-// ─── KPI Card ─────────────────────────────────────────────────────────────────
-interface KpiProps { label: string; value: string | number; sub?: string; color?: string; icon?: ReactNode; trend?: number; }
-export function KpiCard({ label, value, sub, color = "var(--accent)", icon, trend }: KpiProps) {
-  return (
-    <div className="rounded-lg p-4 relative overflow-hidden"
-      style={{ background: "var(--bg-raised)", border: "1px solid var(--border)" }}>
-      {/* Top accent bar */}
-      <div className="absolute top-0 left-0 right-0 h-px" style={{ background: color }} />
-      {/* Subtle glow */}
-      <div className="absolute top-0 left-0 right-0 h-8 pointer-events-none"
-        style={{ background: `linear-gradient(to bottom, ${color}10, transparent)` }} />
-
+    <div className="glass-card p-5 relative overflow-hidden transition"
+      onMouseEnter={e=>{const el=e.currentTarget as HTMLElement;el.style.boxShadow="var(--shadow-lg)";el.style.transform="translateY(-3px)"}}
+      onMouseLeave={e=>{const el=e.currentTarget as HTMLElement;el.style.boxShadow="var(--shadow-sm)";el.style.transform=""}}>
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:"3px", background:color, borderRadius:"12px 12px 0 0" }}/>
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:"70px", background:`linear-gradient(to bottom,${color}09,transparent)`, pointerEvents:"none" }}/>
       <div className="flex items-start justify-between">
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-semibold uppercase tracking-widest mb-2.5" style={{ color: "var(--text-lo)" }}>
-            {label}
-          </div>
-          <div className="text-2xl font-bold font-mono tracking-tight" style={{ color: "var(--text-hi)" }}>
-            {value}
-          </div>
-          {sub && <div className="text-xs mt-1" style={{ color: "var(--text-lo)" }}>{sub}</div>}
+          <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color:"var(--text-lo)" }}>{label}</div>
+          <div className="text-3xl font-extrabold tracking-tight font-mono" style={{ color:"var(--navy)" }}>{value}</div>
+          {sub && <div className="text-xs mt-1.5" style={{ color:"var(--text-lo)" }}>{sub}</div>}
           {trend !== undefined && (
-            <div className={`text-xs mt-1.5 font-medium ${trend >= 0 ? "text-green" : "text-red"}`}>
-              {trend >= 0 ? "↑" : "↓"} {Math.abs(trend)}%
+            <div className={`flex items-center gap-1 text-xs font-bold mt-2 ${trend>=0?"text-green":"text-red"}`}>
+              {trend>=0 ? <TrendingUp size={12}/> : <TrendingDown size={12}/>}
+              {Math.abs(trend)}%
             </div>
           )}
         </div>
-        {icon && (
-          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: `${color}18`, color }}>
-            {icon}
-          </div>
-        )}
+        {icon && <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background:`${color}14`, color }}>{icon}</div>}
       </div>
     </div>
   );
 }
 
-// ─── Table ────────────────────────────────────────────────────────────────────
-export function Table({ children }: { children: ReactNode }) {
-  return <div className="overflow-x-auto"><table className="w-full" style={{ borderCollapse: "collapse" }}>{children}</table></div>;
+export function Table({ children }: { children:ReactNode }) {
+  return <div className="overflow-x-auto"><table className="w-full" style={{ borderCollapse:"collapse" }}>{children}</table></div>;
 }
-
-export function Th({ children, right }: { children: ReactNode; right?: boolean }) {
-  return (
-    <th className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-widest whitespace-nowrap ${right ? "text-right" : "text-left"}`}
-      style={{ color: "var(--text-lo)", borderBottom: "1px solid var(--border)", background: "var(--bg-overlay)" }}>
-      {children}
-    </th>
-  );
+export function Th({ children, right }: { children:ReactNode; right?:boolean }) {
+  return <th className={`px-4 py-3 text-xs font-bold uppercase tracking-widest whitespace-nowrap ${right?"text-right":"text-left"}`} style={{ color:"var(--text-lo)", borderBottom:"1px solid var(--border)", background:"rgba(47,55,88,.025)" }}>{children}</th>;
 }
-
-export function Tr({ children, onClick, className }: { children: ReactNode; onClick?: () => void; className?: string }) {
+export function Tr({ children, onClick, className }: { children:ReactNode; onClick?:()=>void; className?:string }) {
   return (
-    <tr
-      className={`transition ${onClick ? "cursor-pointer" : ""} ${className || ""}`}
+    <tr className={`transition ${onClick?"cursor-pointer":""} ${className||""}`}
+      style={{ borderBottom:"1px solid var(--border)" }}
       onClick={onClick}
-      style={{ borderBottom: "1px solid var(--border)" }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-overlay)"; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; }}
-    >
+      onMouseEnter={e=>{if(onClick)(e.currentTarget as HTMLElement).style.background="rgba(255,122,0,.03)"}}
+      onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background=""}}>
       {children}
     </tr>
   );
 }
-
-export function Td({ children, className, right, mono }: { children: ReactNode; className?: string; right?: boolean; mono?: boolean }) {
-  return (
-    <td className={`px-4 py-3 text-sm ${right ? "text-right" : ""} ${mono ? "font-mono" : ""} ${className || ""}`}>
-      {children}
-    </td>
-  );
+export function Td({ children, className, right, mono }: { children:ReactNode; className?:string; right?:boolean; mono?:boolean }) {
+  return <td className={`px-4 py-3.5 ${right?"text-right":""} ${mono?"font-mono":""} ${className||""}`} style={{ fontSize:"13px" }}>{children}</td>;
 }
 
-// ─── Form Controls ────────────────────────────────────────────────────────────
 const inputBase: React.CSSProperties = {
-  background: "var(--bg-overlay)",
-  border: "1px solid var(--border-mid)",
-  borderRadius: "var(--r-sm)",
-  color: "var(--text-hi)",
-  fontSize: "13px",
-  outline: "none",
-  width: "100%",
-  padding: "8px 12px",
-  transition: "border-color 0.15s, box-shadow 0.15s",
+  background:"var(--glass-hi)", border:"1.5px solid var(--border-mid)", borderRadius:"var(--r-sm)",
+  color:"var(--text)", fontSize:"13px", fontFamily:"var(--font)", outline:"none", width:"100%",
+  padding:"10px 14px", transition:"border-color .15s, box-shadow .15s",
 };
-
-function focusIn(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
-  e.target.style.borderColor = "var(--accent)";
-  e.target.style.boxShadow = "0 0 0 2px var(--accent-lo)";
-}
-function focusOut(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
-  e.target.style.borderColor = "var(--border-mid)";
-  e.target.style.boxShadow = "none";
-}
+const onFocusIn  = (e:React.FocusEvent<any>) => { e.target.style.borderColor="var(--orange)"; e.target.style.boxShadow="0 0 0 3px var(--orange-alpha)"; };
+const onFocusOut = (e:React.FocusEvent<any>) => { e.target.style.borderColor="var(--border-mid)"; e.target.style.boxShadow="none"; };
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
-  ({ style, ...props }, ref) => (
-    <input ref={ref} style={{ ...inputBase, ...style }} onFocus={focusIn} onBlur={focusOut} {...props} />
-  )
+  ({ style, ...props }, ref) => <input ref={ref} style={{ ...inputBase, ...style }} onFocus={onFocusIn} onBlur={onFocusOut} {...props}/>
 );
 Input.displayName = "Input";
 
-export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement> & { children: ReactNode }>(
-  ({ style, children, ...props }, ref) => (
-    <select ref={ref} style={{ ...inputBase, ...style }} onFocus={focusIn} onBlur={focusOut} {...props}>
-      {children}
-    </select>
-  )
+export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>&{children:ReactNode}>(
+  ({ style, children, ...props }, ref) => <select ref={ref} style={{ ...inputBase, ...style }} onFocus={onFocusIn} onBlur={onFocusOut} {...props}>{children}</select>
 );
 Select.displayName = "Select";
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(
-  ({ style, ...props }, ref) => (
-    <textarea ref={ref} style={{ ...inputBase, minHeight: "80px", resize: "vertical", ...style }} onFocus={focusIn} onBlur={focusOut} {...props} />
-  )
+  ({ style, ...props }, ref) => <textarea ref={ref} style={{ ...inputBase, minHeight:"88px", resize:"vertical", ...style }} onFocus={onFocusIn} onBlur={onFocusOut} {...props}/>
 );
 Textarea.displayName = "Textarea";
 
-export function FormGroup({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
+export function FormGroup({ label, children, hint, required }: { label:string; children:ReactNode; hint?:string; required?:boolean }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-lo)" }}>
-        {label}
+      <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-widest" style={{ color:"var(--text-lo)" }}>
+        {label}{required && <span style={{ color:"var(--orange)" }}>*</span>}
       </label>
       {children}
-      {hint && <p className="text-xs" style={{ color: "var(--text-lo)" }}>{hint}</p>}
+      {hint && <p className="text-xs" style={{ color:"var(--text-lo)" }}>{hint}</p>}
     </div>
   );
 }
 
-// ─── Modal ────────────────────────────────────────────────────────────────────
-interface ModalProps { open: boolean; onClose: () => void; title: string; children: ReactNode; footer?: ReactNode; size?: "sm" | "md" | "lg" | "xl"; }
-export function Modal({ open, onClose, title, children, footer, size = "md" }: ModalProps) {
+interface ModalProps { open:boolean; onClose:()=>void; title:string; children:ReactNode; footer?:ReactNode; size?:"sm"|"md"|"lg"|"xl"; subtitle?:string }
+export function Modal({ open, onClose, title, subtitle, children, footer, size="md" }: ModalProps) {
   if (!open) return null;
-  const maxW = { sm: "384px", md: "512px", lg: "672px", xl: "800px" };
+  const maxW = { sm:"400px", md:"540px", lg:"700px", xl:"860px" };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade"
-      style={{ background: "rgba(0,0,0,.7)", backdropFilter: "blur(6px)" }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="w-full rounded-xl overflow-hidden animate-slide"
-        style={{ maxWidth: maxW[size], maxHeight: "88vh", background: "var(--bg-raised)", border: "1px solid var(--border-mid)", display: "flex", flexDirection: "column", boxShadow: "var(--shadow-lg)" }}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 flex-shrink-0"
-          style={{ borderBottom: "1px solid var(--border)", background: "var(--bg-overlay)" }}>
-          <h3 className="font-semibold text-base" style={{ color: "var(--text-hi)" }}>{title}</h3>
-          <button onClick={onClose} className="w-7 h-7 rounded flex items-center justify-center transition"
-            style={{ color: "var(--text-lo)" }}
-            onMouseEnter={e => (e.currentTarget.style.color = "var(--text-hi)")}
-            onMouseLeave={e => (e.currentTarget.style.color = "var(--text-lo)")}>
-            <X size={15} />
+      style={{ background:"rgba(47,55,88,.5)", backdropFilter:"blur(10px)" }}
+      onClick={e => { if(e.target===e.currentTarget) onClose(); }}>
+      <div className="w-full rounded-2xl overflow-hidden animate-up"
+        style={{ maxWidth:maxW[size], maxHeight:"90vh", background:"var(--glass-hi)", border:"1px solid var(--glass-border)", display:"flex", flexDirection:"column", boxShadow:"var(--shadow-xl)", backdropFilter:"blur(24px)" }}>
+        <div className="flex items-start justify-between px-6 py-5 flex-shrink-0" style={{ borderBottom:"1px solid var(--border)", background:"linear-gradient(135deg,rgba(47,55,88,.03),rgba(255,122,0,.025))" }}>
+          <div>
+            <h3 className="font-bold text-xl" style={{ color:"var(--navy)" }}>{title}</h3>
+            {subtitle && <p className="text-xs mt-0.5" style={{ color:"var(--text-lo)" }}>{subtitle}</p>}
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center transition ml-4 flex-shrink-0"
+            style={{ color:"var(--text-lo)", background:"var(--navy-alpha)" }}
+            onMouseEnter={e=>(e.currentTarget.style.background="var(--red-bg)")}
+            onMouseLeave={e=>(e.currentTarget.style.background="var(--navy-alpha)")}>
+            <X size={15}/>
           </button>
         </div>
-        {/* Body */}
-        <div className="overflow-y-auto flex-1 p-5 space-y-4">{children}</div>
-        {/* Footer */}
-        {footer && (
-          <div className="flex items-center justify-end gap-2 px-5 py-3.5 flex-shrink-0"
-            style={{ borderTop: "1px solid var(--border)", background: "var(--bg-overlay)" }}>
-            {footer}
-          </div>
-        )}
+        <div className="overflow-y-auto flex-1 p-6 space-y-4">{children}</div>
+        {footer && <div className="flex items-center justify-end gap-2.5 px-6 py-4 flex-shrink-0" style={{ borderTop:"1px solid var(--border)", background:"rgba(47,55,88,.02)" }}>{footer}</div>}
       </div>
     </div>
   );
 }
 
-// ─── Empty State ──────────────────────────────────────────────────────────────
-export function EmptyState({ icon, title, description, action }: { icon?: ReactNode; title: string; description?: string; action?: ReactNode }) {
+export function EmptyState({ icon, title, description, action }: { icon?:ReactNode; title:string; description?:string; action?:ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-      {icon && <div className="mb-4 opacity-30" style={{ fontSize: "40px" }}>{icon}</div>}
-      <p className="font-semibold text-sm mb-1" style={{ color: "var(--text-mid)" }}>{title}</p>
-      {description && <p className="text-xs mb-4" style={{ color: "var(--text-lo)" }}>{description}</p>}
+      {icon && <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5" style={{ background:"var(--orange-alpha)", border:"1px solid var(--orange-border)", color:"var(--orange)" }}>{icon}</div>}
+      <p className="font-bold text-base mb-1" style={{ color:"var(--navy)" }}>{title}</p>
+      {description && <p className="text-sm mb-4" style={{ color:"var(--text-lo)" }}>{description}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );
 }
 
-// ─── Page Header ─────────────────────────────────────────────────────────────
-export function PageHeader({ title, subtitle, count, children }: { title: string; subtitle?: string; count?: number; children?: ReactNode }) {
+export function PageHeader({ title, subtitle, count, children }: { title:string; subtitle?:string; count?:number; children?:ReactNode }) {
   return (
-    <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+    <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
       <div>
-        <div className="flex items-center gap-2.5">
-          <h1 className="text-xl font-bold tracking-tight" style={{ color: "var(--text-hi)" }}>{title}</h1>
-          {count !== undefined && (
-            <span className="text-xs font-mono px-2 py-0.5 rounded-full" style={{ background: "var(--bg-subtle)", color: "var(--text-lo)", border: "1px solid var(--border)" }}>
-              {count}
-            </span>
-          )}
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-extrabold tracking-tight" style={{ color:"var(--navy)" }}>{title}</h1>
+          {count !== undefined && <span className="text-xs font-bold px-2.5 py-1 rounded-full font-mono" style={{ background:"var(--navy-alpha)", color:"var(--navy)", border:"1px solid var(--border)" }}>{count}</span>}
         </div>
-        {subtitle && <p className="text-xs mt-0.5" style={{ color: "var(--text-lo)" }}>{subtitle}</p>}
+        {subtitle && <p className="text-sm mt-1" style={{ color:"var(--text-lo)" }}>{subtitle}</p>}
       </div>
       <div className="flex items-center gap-2">{children}</div>
     </div>
   );
 }
 
-// ─── Search Input ─────────────────────────────────────────────────────────────
-export function SearchInput({ value, onChange, placeholder = "Buscar..." }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+export function SearchInput({ value, onChange, placeholder="Buscar...", width="220px" }: { value:string; onChange:(v:string)=>void; placeholder?:string; width?:string }) {
   return (
-    <div className="relative">
-      <span className="absolute" style={{ left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--text-lo)", fontSize: "13px" }}>⌕</span>
-      <input
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-        style={{ ...inputBase, paddingLeft: "30px", width: "200px" }}
-        onFocus={focusIn}
-        onBlur={focusOut}
-      />
+    <div className="relative flex-shrink-0" style={{ width }}>
+      <Search size={13} style={{ position:"absolute", left:"11px", top:"50%", transform:"translateY(-50%)", color:"var(--text-lo)" }}/>
+      <input value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder}
+        style={{ ...inputBase, paddingLeft:"32px", width }} onFocus={onFocusIn} onBlur={onFocusOut}/>
     </div>
   );
 }
 
-// ─── Kanban Column ────────────────────────────────────────────────────────────
-export function KanbanCol({ title, color, count, children, onAdd }: { title: string; color: string; count: number; children: ReactNode; onAdd?: () => void; }) {
+export function KanbanCol({ title, color, count, children, onAdd }: { title:string; color:string; count:number; children:ReactNode; onAdd?:()=>void }) {
   return (
     <div className="kanban-col">
-      {/* Column header */}
-      <div className="flex items-center justify-between px-3 py-2 rounded-md mb-2"
-        style={{ background: "var(--bg-overlay)", borderLeft: `2px solid ${color}` }}>
-        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color }}>{title}</span>
-        <span className="text-xs font-mono px-1.5 py-0.5 rounded"
-          style={{ background: "var(--bg-subtle)", color: "var(--text-lo)", border: "1px solid var(--border)" }}>
-          {count}
-        </span>
+      <div className="flex items-center justify-between px-3 py-2.5 rounded-xl mb-3"
+        style={{ background:"var(--glass-hi)", border:`1px solid ${color}30`, borderLeft:`3px solid ${color}`, boxShadow:"var(--shadow-xs)" }}>
+        <span className="text-xs font-bold uppercase tracking-wide" style={{ color }}>{title}</span>
+        <span className="text-xs font-bold font-mono px-2 py-0.5 rounded-full" style={{ background:`${color}14`, color, border:`1px solid ${color}30` }}>{count}</span>
       </div>
       {children}
       {onAdd && (
         <button onClick={onAdd}
-          className="w-full py-2 rounded-md text-xs font-medium transition mt-1"
-          style={{ border: "1px dashed var(--border)", color: "var(--text-lo)", background: "none" }}
-          onMouseEnter={e => { const el = e.currentTarget; el.style.borderColor = "var(--accent)"; el.style.color = "var(--accent)"; }}
-          onMouseLeave={e => { const el = e.currentTarget; el.style.borderColor = "var(--border)"; el.style.color = "var(--text-lo)"; }}>
-          + Adicionar
+          className="w-full py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 mt-1"
+          style={{ border:"1.5px dashed var(--border-mid)", color:"var(--text-lo)", background:"none" }}
+          onMouseEnter={e=>{const el=e.currentTarget;el.style.borderColor="var(--orange)";el.style.color="var(--orange)";el.style.background="var(--orange-alpha)"}}
+          onMouseLeave={e=>{const el=e.currentTarget;el.style.borderColor="var(--border-mid)";el.style.color="var(--text-lo)";el.style.background="none"}}>
+          <Plus size={12}/> Adicionar
         </button>
       )}
     </div>
   );
 }
 
-// ─── Tabs ─────────────────────────────────────────────────────────────────────
-export function Tabs({ tabs, active, onChange }: { tabs: { key: string; label: string }[]; active: string; onChange: (k: string) => void; }) {
+export function Tabs({ tabs, active, onChange }: { tabs:{key:string;label:string;icon?:ReactNode}[]; active:string; onChange:(k:string)=>void }) {
   return (
-    <div className="flex gap-0.5 p-1 rounded-lg w-fit" style={{ background: "var(--bg-overlay)", border: "1px solid var(--border)" }}>
+    <div className="flex gap-1 p-1 rounded-xl" style={{ background:"var(--navy-alpha)", border:"1px solid var(--border)" }}>
       {tabs.map(t => (
-        <button key={t.key} onClick={() => onChange(t.key)}
-          className="px-3 py-1.5 rounded text-xs font-medium transition"
-          style={{
-            background: active === t.key ? "var(--bg-raised)" : "transparent",
-            color: active === t.key ? "var(--text-hi)" : "var(--text-lo)",
-            border: active === t.key ? "1px solid var(--border-mid)" : "1px solid transparent",
-          }}>
-          {t.label}
+        <button key={t.key} onClick={()=>onChange(t.key)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+          style={{ background:active===t.key?"var(--glass-hi)":"transparent", color:active===t.key?"var(--navy)":"var(--text-lo)", boxShadow:active===t.key?"var(--shadow-xs)":"none", border:active===t.key?"1px solid var(--border)":"1px solid transparent" }}>
+          {t.icon}{t.label}
         </button>
       ))}
     </div>
   );
 }
 
-// ─── Divider ─────────────────────────────────────────────────────────────────
-export function Divider({ label }: { label?: string }) {
-  if (!label) return <div style={{ height: "1px", background: "var(--border)", margin: "8px 0" }} />;
-  return (
-    <div className="flex items-center gap-3" style={{ margin: "8px 0" }}>
-      <div style={{ flex: 1, height: "1px", background: "var(--border)" }} />
-      <span className="text-xs" style={{ color: "var(--text-lo)" }}>{label}</span>
-      <div style={{ flex: 1, height: "1px", background: "var(--border)" }} />
-    </div>
-  );
+export function Tag({ children }: { children:ReactNode }) {
+  return <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background:"var(--navy-alpha)", color:"var(--navy-hi)", border:"1px solid var(--border)" }}>{children}</span>;
 }
 
-// ─── Tag ─────────────────────────────────────────────────────────────────────
-export function Tag({ children }: { children: ReactNode }) {
-  return (
-    <span className="text-xs px-2 py-0.5 rounded font-medium"
-      style={{ background: "var(--bg-subtle)", color: "var(--text-mid)", border: "1px solid var(--border)" }}>
-      {children}
-    </span>
-  );
+export function ProgressBar({ value, max=100, color="var(--orange)" }: { value:number; max?:number; color?:string }) {
+  const pct = Math.min(100, Math.max(0, (value/max)*100));
+  return <div className="rounded-full overflow-hidden" style={{ height:"5px", background:"var(--navy-alpha)" }}><div className="h-full rounded-full transition" style={{ width:`${pct}%`, background:color }}/></div>;
 }
 
-// ─── Progress ─────────────────────────────────────────────────────────────────
-export function ProgressBar({ value, max = 100, color = "var(--accent)" }: { value: number; max?: number; color?: string }) {
-  const pct = Math.min(100, Math.max(0, (value / max) * 100));
-  return (
-    <div className="rounded-full overflow-hidden" style={{ height: "4px", background: "var(--bg-subtle)" }}>
-      <div className="h-full rounded-full transition" style={{ width: `${pct}%`, background: color }} />
-    </div>
-  );
+export function Divider({ label }: { label?:string }) {
+  if (!label) return <div style={{ height:"1px", background:"var(--border)", margin:"4px 0" }}/>;
+  return <div className="flex items-center gap-3" style={{ margin:"4px 0" }}><div style={{ flex:1, height:"1px", background:"var(--border)" }}/><span className="text-xs font-semibold" style={{ color:"var(--text-lo)" }}>{label}</span><div style={{ flex:1, height:"1px", background:"var(--border)" }}/></div>;
+}
+
+export function Alert({ type, children }: { type:"info"|"success"|"warning"|"error"; children:ReactNode }) {
+  const cfg = {
+    info:    { bg:"var(--blue-bg)",   border:"rgba(59,130,246,.22)",  color:"#1d4ed8", Icon:Info },
+    success: { bg:"var(--green-bg)",  border:"rgba(16,185,129,.22)",  color:"#047857", Icon:Check },
+    warning: { bg:"var(--yellow-bg)", border:"rgba(245,158,11,.22)",  color:"#b45309", Icon:AlertCircle },
+    error:   { bg:"var(--red-bg)",    border:"rgba(239,68,68,.22)",   color:"#b91c1c", Icon:AlertCircle },
+  }[type];
+  return <div className="flex items-start gap-3 p-3 rounded-lg text-sm" style={{ background:cfg.bg, border:`1px solid ${cfg.border}`, color:"var(--text-mid)" }}><cfg.Icon size={15} style={{ color:cfg.color, flexShrink:0, marginTop:"1px" }}/><div>{children}</div></div>;
 }

@@ -61,7 +61,7 @@ export default function Tasks() {
       </PageHeader>
 
       {projects.length === 0 ? (
-        <div className="rounded-xl p-12" style={{ background: "var(--bg-raised)", border: "1px solid var(--border)" }}>
+        <div className="rounded-xl p-12" style={{ background: "var(--glass-hi)", border: "1px solid var(--border)" }}>
           <EmptyState icon="📋" title="Crie um projeto primeiro para organizar tarefas" />
         </div>
       ) : (
@@ -73,7 +73,7 @@ export default function Tasks() {
                 {colTasks.map(t => (
                   <div key={t.id} onClick={() => openEdit(t)}
                     className="p-3 rounded-xl mb-2 cursor-pointer transition-all"
-                    style={{ background: "var(--bg-raised)", border: "1px solid var(--border)" }}
+                    style={{ background: "var(--glass-hi)", border: "1px solid var(--border)" }}
                     onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--accent)")}
                     onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--border)")}>
                     <div className="font-semibold text-sm mb-2 leading-snug">{t.title}</div>

@@ -60,7 +60,7 @@ export default function Expenses() {
                   {expenses.map(e => (
                     <Tr key={e.id}>
                       <Td><span className="font-semibold text-sm">{e.description}</span></Td>
-                      <Td><span className="text-xs px-2 py-0.5 rounded-md font-medium" style={{ background: "var(--bg-overlay)", border: "1px solid var(--border)" }}>{e.category}</span></Td>
+                      <Td><span className="text-xs px-2 py-0.5 rounded-md font-medium" style={{ background: "var(--glass)", border: "1px solid var(--border)" }}>{e.category}</span></Td>
                       <Td><span className="text-sm">{fmtDate(e.date)}</span></Td>
                       <Td><span className="text-xs" style={{ color: "var(--text-lo)" }}>{projectMap[e.projectId ?? 0] || "—"}</span></Td>
                       <Td><span className="font-mono font-bold" style={{ color: "var(--red)" }}>- {fmtCurrency(e.value)}</span></Td>
@@ -90,7 +90,7 @@ export default function Expenses() {
                     <span className="text-xs font-medium">{cat}</span>
                     <span className="font-mono text-xs" style={{ color: "var(--red)" }}>- {fmtCurrency(val)}</span>
                   </div>
-                  <div className="h-1 rounded-full" style={{ background: "var(--bg-overlay)" }}>
+                  <div className="h-1 rounded-full" style={{ background: "var(--glass)" }}>
                     <div className="h-full rounded-full" style={{ background: "var(--red)", opacity: 0.7, width: `${Math.round(val / totalPago * 100)}%` }} />
                   </div>
                 </div>

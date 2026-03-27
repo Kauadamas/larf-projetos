@@ -194,7 +194,7 @@ export default function Proposals() {
                 {disc > 0 && <div className="flex gap-8 text-sm"><span style={{ color: "var(--text-lo)" }}>Desconto</span><span className="font-mono text-red-400">- {fmtCurrency(disc)}</span></div>}
                 <div className="flex gap-8 font-bold"><span>Total</span><span className="font-mono text-xl" style={{ color: "var(--green)" }}>{fmtCurrency(Number(viewData.total))}</span></div>
               </div>
-              {viewData.notes && <div className="rounded-lg p-3 text-sm" style={{ background: "var(--bg-overlay)", color: "var(--text-lo)" }}>{viewData.notes}</div>}
+              {viewData.notes && <div className="rounded-lg p-3 text-sm" style={{ background: "var(--glass)", color: "var(--text-lo)" }}>{viewData.notes}</div>}
             </div>
           );
         })() : <div className="text-sm py-8 text-center" style={{ color: "var(--text-lo)" }}>Carregando...</div>}

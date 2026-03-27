@@ -65,7 +65,7 @@ export default function Reports() {
                     <Td><span className="font-mono text-sm" style={{ color: "var(--green)" }}>{fmtCurrency(c.revenue)}</span></Td>
                     <Td>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1.5 rounded-full" style={{ background: "var(--bg-overlay)", width: "60px" }}>
+                        <div className="flex-1 h-1.5 rounded-full" style={{ background: "var(--glass)", width: "60px" }}>
                           <div className="h-full rounded-full" style={{ background: "var(--green)", width: `${Math.round(c.revenue / recebido * 100)}%` }} />
                         </div>
                         <span className="text-xs font-mono" style={{ color: "var(--text-lo)" }}>{Math.round(c.revenue / recebido * 100)}%</span>
@@ -89,7 +89,7 @@ export default function Reports() {
                       <span className="text-sm font-medium">{cat}</span>
                       <span className="font-mono text-sm" style={{ color: "var(--red)" }}>- {fmtCurrency(val)}</span>
                     </div>
-                    <div className="h-1.5 rounded-full" style={{ background: "var(--bg-overlay)" }}>
+                    <div className="h-1.5 rounded-full" style={{ background: "var(--glass)" }}>
                       <div className="h-full rounded-full" style={{ background: "var(--red)", opacity: 0.65, width: `${Math.round(val / totalExp * 100)}%` }} />
                     </div>
                   </div>

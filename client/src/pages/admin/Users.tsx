@@ -40,7 +40,7 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
           <FormGroup label="Link do Convite (válido por 48h)">
             <div className="flex gap-2">
               <input readOnly value={sent} className="flex-1 px-3 py-2 rounded-lg text-xs"
-                style={{ background: "var(--bg-overlay)", border: "1px solid var(--border)", color: "var(--text-lo)" }} />
+                style={{ background: "var(--glass)", border: "1px solid var(--border)", color: "var(--text-lo)" }} />
               <Button size="sm" onClick={() => { navigator.clipboard.writeText(sent); toast.success("Copiado!"); }}>
                 Copiar
               </Button>
@@ -100,13 +100,13 @@ export default function Users() {
       </PageHeader>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-5 p-1 rounded-xl w-fit" style={{ background: "var(--bg-overlay)" }}>
+      <div className="flex gap-1 mb-5 p-1 rounded-xl w-fit" style={{ background: "var(--glass)" }}>
         {(["users", "invites", "audit"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
             style={{
-              background: tab === t ? "var(--bg-raised)" : "transparent",
-              color: tab === t ? "var(--text-hi)" : "var(--text-lo)",
+              background: tab === t ? "var(--glass-hi)" : "transparent",
+              color: tab === t ? "var(--text)" : "var(--text-lo)",
               border: tab === t ? "1px solid var(--border)" : "1px solid transparent",
             }}>
             {{ users: "Usuários", invites: "Convites", audit: "Audit Log" }[t]}
@@ -141,13 +141,13 @@ export default function Users() {
                         <select value={u.role}
                           onChange={e => setRole.mutate({ userId: u.id, role: e.target.value as any })}
                           className="text-xs px-2 py-1 rounded-lg outline-none"
-                          style={{ background: "var(--bg-overlay)", border: "1px solid var(--border)", color: "var(--text-hi)" }}>
+                          style={{ background: "var(--glass)", border: "1px solid var(--border)", color: "var(--text)" }}>
                           <option value="viewer">viewer</option>
                           <option value="member">member</option>
                           <option value="admin">admin</option>
                           <option value="superadmin">superadmin</option>
                         </select>
-                      ) : <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "var(--bg-overlay)", border: "1px solid var(--border)" }}>{u.role}</span>}
+                      ) : <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "var(--glass)", border: "1px solid var(--border)" }}>{u.role}</span>}
                     </Td>
                     <Td>
                       <span className="flex items-center gap-1.5 text-xs font-medium">
@@ -185,7 +185,7 @@ export default function Users() {
                 {invites.map((i: any) => (
                   <Tr key={i.id}>
                     <Td><span className="font-medium text-sm">{i.email}</span></Td>
-                    <Td><span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--bg-overlay)", border: "1px solid var(--border)" }}>{i.role}</span></Td>
+                    <Td><span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--glass)", border: "1px solid var(--border)" }}>{i.role}</span></Td>
                     <Td>
                       {i.used    ? <Badge status="ativo" />      : null}
                       {i.expired && !i.used ? <Badge status="vencido" /> : null}

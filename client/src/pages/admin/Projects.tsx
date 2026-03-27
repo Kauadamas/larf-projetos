@@ -73,7 +73,7 @@ export default function Projects() {
             </tbody>
           </Table>
         ) : (
-          <EmptyState icon="rocket" title={search ? "Nenhum projeto encontrado" : "Nenhum projeto criado ainda"}}
+          <EmptyState icon="rocket" title={search ? "Nenhum projeto encontrado" : "Nenhum projeto criado ainda"}
             action={!search ? <Button variant="primary" onClick={openCreate}>+ Criar Primeiro Projeto</Button> : undefined} />
         )}
       </Card>

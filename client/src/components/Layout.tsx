@@ -76,10 +76,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           const count = item.badge ? badges[item.badge] : null;
           return (
             <button key={item.href} onClick={() => handleNavClick(item.href)}
-              className="w-full flex items-center gap-2 md:gap-2.5 px-2.5 md:px-3 py-2 md:py-2.5 rounded-lg md:rounded-xl mb-0.5 transition text-left select-none text-xs md:text-sm focus-visible:outline-none"
+              className="w-full flex items-center gap-2 md:gap-2.5 px-2.5 md:px-3 py-2 md:py-2.5 rounded-lg md:rounded-xl mb-0.5 transition text-left select-none text-xs md:text-sm"
               style={{
                 fontWeight: active ? 700 : 400,
-                color: active ? "#fff" : "rgba(255,255,255,.52)",
+                color: active ? "#fff" : "rgba(255,255,255,.65)",
                 background: active ? "rgba(255,122,0,.22)" : "transparent",
                 border: active ? "1px solid rgba(255,122,0,.30)" : "1px solid transparent",
               }}
@@ -116,16 +116,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* User */}
       <div className="p-2 md:p-3" style={{ borderTop: "1px solid rgba(255,255,255,.07)" }}>
         <div className="flex items-center gap-1.5 md:gap-2 p-1.5 md:p-2.5 rounded-lg md:rounded-xl" style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.08)" }}>
-          <div className="flex items-center justify-center rounded-lg text-white font-bold flex-shrink-0" style={{ width: "28px", height: "28px", background: "var(--orange)", fontSize: "11px", boxShadow: "var(--shadow-orange)" }}>
+          <div className="flex items-center justify-center rounded-lg text-white font-bold flex-shrink-0" style={{ width: "32px", height: "32px", background: "var(--orange)", fontSize: "12px", boxShadow: "var(--shadow-orange)" }}>
             {user?.name?.charAt(0)?.toUpperCase() || "L"}
           </div>
           <div className="flex-1 min-w-0 hidden sm:block">
             <div className="text-xs font-bold truncate" style={{ color: "#fff" }}>{user?.name || "LARF"}</div>
-            <div className="truncate" style={{ color: "rgba(255,255,255,.38)", fontSize: "8px" }}>{user?.role}</div>
+            <div className="truncate" style={{ color: "rgba(255,255,255,.52)", fontSize: "8px" }}>{user?.role}</div>
           </div>
-          <button onClick={logout} title="Sair" className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center rounded-lg transition flex-shrink-0 hover:bg-white/10 focus-visible:outline-none"
-            style={{ color: "rgba(255,255,255,.38)" }}>
-            <LogOut size={14} />
+          <button onClick={logout} title="Sair" className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-lg transition flex-shrink-0 hover:bg-white/10 focus-visible:outline-none"
+            style={{ color: "rgba(255,255,255,.65)" }}>
+            <LogOut size={16} />
           </button>
         </div>
       </div>

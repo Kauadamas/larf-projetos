@@ -2,9 +2,10 @@ import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
 import { fmtCurrency, fmtDate, isOverdue, today } from "../../lib/utils";
-import { PageHeader, Card, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, SearchInput, EmptyState } from "../../components/UI";
+import { PageHeader, Card, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, FormGrid, Input, Select, Textarea, SearchInput, EmptyState, ConfirmDialog, FieldError, Edit2, Trash2 } from "../../components/UI";
 
 type FormData = { title: string; clientId: string; description: string; status: string; value: string; hoursEstimated: string; startDate: string; deadline: string };
+type FormErrors = Record<string, string>;
 const empty: FormData = { title: "", clientId: "", description: "", status: "em_andamento", value: "", hoursEstimated: "", startDate: today(), deadline: "" };
 
 export default function Projects() {
@@ -12,28 +13,61 @@ export default function Projects() {
   const [modal, setModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<FormData>(empty);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
   const utils = trpc.useUtils();
 
   const { data: projects = [] } = trpc.projects.list.useQuery();
   const { data: clients = [] } = trpc.clients.list.useQuery();
   const create = trpc.projects.create.useMutation({ onSuccess: () => { toast.success("Projeto criado!"); utils.projects.list.invalidate(); utils.dashboard.stats.invalidate(); close(); } });
   const update = trpc.projects.update.useMutation({ onSuccess: () => { toast.success("Atualizado!"); utils.projects.list.invalidate(); utils.dashboard.stats.invalidate(); close(); } });
-  const del = trpc.projects.delete.useMutation({ onSuccess: () => { toast.success("Excluído."); utils.projects.list.invalidate(); utils.dashboard.stats.invalidate(); } });
+  const del = trpc.projects.delete.useMutation({ onSuccess: () => { toast.success("Excluído."); utils.projects.list.invalidate(); utils.dashboard.stats.invalidate(); setDeleteConfirm(null); } });
 
   const clientMap = Object.fromEntries(clients.map(c => [c.id, c.name]));
   const filtered = projects.filter(p => (p.title + (clientMap[p.clientId ?? 0] || "")).toLowerCase().includes(search.toLowerCase()));
 
-  function openCreate() { setEditId(null); setForm(empty); setModal(true); }
+  function openCreate() { setEditId(null); setForm(empty); setErrors({}); setModal(true); }
   function openEdit(p: typeof projects[0]) {
     setEditId(p.id);
     setForm({ title: p.title, clientId: p.clientId ? String(p.clientId) : "", description: p.description || "", status: p.status, value: p.value ? String(p.value) : "", hoursEstimated: p.hoursEstimated ? String(p.hoursEstimated) : "", startDate: p.startDate || today(), deadline: p.deadline || "" });
+    setErrors({});
     setModal(true);
   }
-  function close() { setModal(false); }
-  const set = (k: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
+  function close() { setModal(false); setErrors({}); }
+  const set = (k: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setForm(f => ({ ...f, [k]: e.target.value }));
+    if (errors[k]) setErrors(e => ({ ...e, [k]: "" }));
+  };
+
+  const validate = (field: keyof FormData) => {
+    const newErrors = { ...errors };
+    if (field === "title" && !form.title.trim()) {
+      newErrors.title = "Título é obrigatório";
+    } else if (field === "title") {
+      delete newErrors.title;
+    }
+    if (field === "value" && form.value && isNaN(parseFloat(form.value))) {
+      newErrors.value = "Valor inválido";
+    } else if (field === "value") {
+      delete newErrors.value;
+    }
+    if (field === "hoursEstimated" && form.hoursEstimated && isNaN(parseFloat(form.hoursEstimated))) {
+      newErrors.hoursEstimated = "Horas inválidas";
+    } else if (field === "hoursEstimated") {
+      delete newErrors.hoursEstimated;
+    }
+    setErrors(newErrors);
+  };
+
+  const isFormValid = form.title.trim() && (!form.value || !isNaN(parseFloat(form.value))) && (!form.hoursEstimated || !isNaN(parseFloat(form.hoursEstimated)));
 
   function save() {
-    if (!form.title.trim()) { toast.error("Título obrigatório"); return; }
+    if (!isFormValid) {
+      if (!form.title.trim()) validate("title");
+      if (form.value && isNaN(parseFloat(form.value))) validate("value");
+      if (form.hoursEstimated && isNaN(parseFloat(form.hoursEstimated))) validate("hoursEstimated");
+      return;
+    }
     const d = { ...form, clientId: form.clientId ? parseInt(form.clientId) : null };
     if (editId) update.mutate({ id: editId, ...d });
     else create.mutate(d as any);
@@ -65,7 +99,7 @@ export default function Projects() {
                   <Td>
                     <div className="flex gap-1.5">
                       <Button size="sm" variant="ghost" title="Editar" onClick={() => openEdit(p)} icon={<Edit2 size={14} />} />
-                      <Button size="sm" variant="danger" title="Excluir" onClick={() => { if (confirm("Excluir projeto e todas as tarefas?")) del.mutate({ id: p.id }); }} icon={<Trash2 size={14} />} />
+                      <Button size="sm" variant="danger" title="Excluir" onClick={() => setDeleteConfirm({ id: p.id, name: p.title })} icon={<Trash2 size={14} />} />
                     </div>
                   </Td>
                 </Tr>
@@ -79,19 +113,29 @@ export default function Projects() {
       </Card>
 
       <Modal open={modal} onClose={close} title={editId ? "Editar Projeto" : "Novo Projeto"}
-        footer={<><Button onClick={close}>Cancelar</Button><Button variant="primary" onClick={save} loading={create.isPending || update.isPending}>Salvar</Button></>}>
-        <FormGroup label="Título do Projeto *"><Input value={form.title} onChange={set("title")} placeholder="Ex: Site Institucional Empresa X" /></FormGroup>
-        <div className="grid grid-cols-2 gap-4">
+        footer={<><Button onClick={close}>Cancelar</Button><Button variant="primary" onClick={save} loading={create.isPending || update.isPending} disabled={!isFormValid}>Salvar</Button></>}>
+        <FormGroup label="Título do Projeto *" required error={errors.title}>
+          <Input value={form.title} onChange={set("title")} onBlur={() => validate("title")} placeholder="Ex: Site Institucional Empresa X" style={{ borderColor: errors.title ? "#ef4444" : undefined }} />
+        </FormGroup>
+        <FormGrid cols={2}>
           <FormGroup label="Cliente">
             <Select value={form.clientId} onChange={set("clientId")}>
               <option value="">— Selecione —</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </Select>
           </FormGroup>
-          <FormGroup label="Valor Contratado (R$)"><Input type="number" value={form.value} onChange={set("value")} placeholder="0.00" step="0.01" /></FormGroup>
-          <FormGroup label="Data de Início"><Input type="date" value={form.startDate} onChange={set("startDate")} /></FormGroup>
-          <FormGroup label="Prazo de Entrega"><Input type="date" value={form.deadline} onChange={set("deadline")} /></FormGroup>
-          <FormGroup label="Horas Estimadas"><Input type="number" value={form.hoursEstimated} onChange={set("hoursEstimated")} placeholder="Ex: 40" /></FormGroup>
+          <FormGroup label="Valor Contratado (R$)" error={errors.value}>
+            <Input type="number" value={form.value} onChange={set("value")} onBlur={() => validate("value")} placeholder="0.00" step="0.01" style={{ borderColor: errors.value ? "#ef4444" : undefined }} />
+          </FormGroup>
+          <FormGroup label="Data de Início">
+            <Input type="date" value={form.startDate} onChange={set("startDate")} />
+          </FormGroup>
+          <FormGroup label="Prazo de Entrega">
+            <Input type="date" value={form.deadline} onChange={set("deadline")} />
+          </FormGroup>
+          <FormGroup label="Horas Estimadas" error={errors.hoursEstimated}>
+            <Input type="number" value={form.hoursEstimated} onChange={set("hoursEstimated")} onBlur={() => validate("hoursEstimated")} placeholder="Ex: 40" style={{ borderColor: errors.hoursEstimated ? "#ef4444" : undefined }} />
+          </FormGroup>
           <FormGroup label="Status">
             <Select value={form.status} onChange={set("status")}>
               <option value="em_andamento">Em Andamento</option>
@@ -100,9 +144,22 @@ export default function Projects() {
               <option value="cancelado">Cancelado</option>
             </Select>
           </FormGroup>
-        </div>
-        <FormGroup label="Escopo / Descrição"><Textarea value={form.description} onChange={set("description")} placeholder="Descreva o escopo do projeto..." /></FormGroup>
+        </FormGrid>
+        <FormGroup label="Escopo / Descrição">
+          <Textarea value={form.description} onChange={set("description")} placeholder="Descreva o escopo do projeto..." />
+        </FormGroup>
       </Modal>
+
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="Excluir Projeto?"
+        description="Esta ação não pode ser desfeita. O projeto e todas as tarefas associadas serão removidos permanentemente."
+        itemName={deleteConfirm?.name}
+        loading={del.isPending}
+        onConfirm={() => deleteConfirm && del.mutate({ id: deleteConfirm.id })}
+        onCancel={() => setDeleteConfirm(null)}
+        variant="danger"
+      />
     </div>
   );
 }

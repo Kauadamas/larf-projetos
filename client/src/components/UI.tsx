@@ -2,6 +2,8 @@ import { type ReactNode, type InputHTMLAttributes, type SelectHTMLAttributes, ty
 import { X, Search, TrendingUp, TrendingDown, Plus, Check, AlertCircle, Info, Rocket, CheckCircle2, DollarSign, Users, FileText, Eye, Edit2, Trash2, Clock, Calendar, FileCheck, BarChart3 } from "lucide-react";
 import { getBadgeClass, getBadgeLabel } from "../lib/utils";
 
+export { Edit2, Trash2, AlertCircle };
+
 export function Badge({ status, label }: { status: string; label?: string }) {
   return <span className={`badge badge-${getBadgeClass(status)}`}>{label || getBadgeLabel(status)}</span>;
 }
@@ -135,31 +137,53 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
 );
 Textarea.displayName = "Textarea";
 
-export function FormGroup({ label, children, hint, required }: { label:string; children:ReactNode; hint?:string; required?:boolean }) {
+export function FormGroup({ label, children, hint, required, error }: { label:string; children:ReactNode; hint?:string; required?:boolean; error?:string }) {
+  const hasError = !!error;
   return (
     <div className="space-y-1.5">
       <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-widest" style={{ color:"var(--text-lo)" }}>
         {label}{required && <span style={{ color:"var(--orange)" }}>*</span>}
       </label>
-      {children}
-      {hint && <p className="text-xs" style={{ color:"var(--text-lo)" }}>{hint}</p>}
+      <div style={{ borderColor: hasError ? "#ef4444" : "transparent" }}>
+        {children}
+      </div>
+      {hasError ? (
+        <div className="flex items-center gap-1 text-xs font-medium" style={{ color:"#ef4444" }}>
+          <AlertCircle size={12}/>
+          {error}
+        </div>
+      ) : hint ? (
+        <p className="text-xs" style={{ color:"var(--text-lo)" }}>{hint}</p>
+      ) : null}
     </div>
   );
+}
+
+// FormGrid for responsive form layouts - mobile: 1 col, tablet: 2 col, desktop: var cols
+export function FormGrid({ children, cols=2 }: { children:ReactNode; cols?: 1|2|3|4 }) {
+  const gridClass = `grid grid-cols-1 ${cols>=2?"md:grid-cols-2":""} ${cols>=3?"lg:grid-cols-3":""} ${cols>=4?"2xl:grid-cols-4":""} gap-4`;
+  return <div className={gridClass}>{children}</div>;
 }
 
 interface ModalProps { open:boolean; onClose:()=>void; title:string; children:ReactNode; footer?:ReactNode; size?:"sm"|"md"|"lg"|"xl"; subtitle?:string }
 export function Modal({ open, onClose, title, subtitle, children, footer, size="md" }: ModalProps) {
   if (!open) return null;
+  
+  // Responsive size: full width on mobile, fixed width on desktop
   const maxW = { sm:"400px", md:"540px", lg:"700px", xl:"860px" };
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const responsiveSize = isMobile ? "100%" : maxW[size];
+  const mobilePadding = isMobile ? "p-3" : "p-4";
+  
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade"
       style={{ background:"rgba(47,55,88,.5)", backdropFilter:"blur(10px)" }}
       onClick={e => { if(e.target===e.currentTarget) onClose(); }}>
-      <div className="w-full rounded-2xl overflow-hidden animate-up"
-        style={{ maxWidth:maxW[size], maxHeight:"90vh", background:"var(--glass-hi)", border:"1px solid var(--glass-border)", display:"flex", flexDirection:"column", boxShadow:"var(--shadow-xl)", backdropFilter:"blur(24px)" }}>
-        <div className="flex items-start justify-between px-6 py-5 flex-shrink-0" style={{ borderBottom:"1px solid var(--border)", background:"linear-gradient(135deg,rgba(47,55,88,.03),rgba(255,122,0,.025))" }}>
-          <div>
-            <h3 className="font-bold text-xl" style={{ color:"var(--navy)" }}>{title}</h3>
+      <div className="w-full rounded-2xl overflow-hidden animate-up flex flex-col"
+        style={{ maxWidth:responsiveSize, maxHeight:isMobile ? "95vh" : "90vh", background:"var(--glass-hi)", border:"1px solid var(--glass-border)", boxShadow:"var(--shadow-xl)", backdropFilter:"blur(24px)" }}>
+        <div className={`flex items-start justify-between flex-shrink-0 ${isMobile ? "px-4 py-3.5" : "px-6 py-5"}`} style={{ borderBottom:"1px solid var(--border)", background:"linear-gradient(135deg,rgba(47,55,88,.03),rgba(255,122,0,.025))" }}>
+          <div className="flex-1 min-w-0">
+            <h3 className={`font-bold ${isMobile ? "text-lg" : "text-xl"}`} style={{ color:"var(--navy)" }}>{title}</h3>
             {subtitle && <p className="text-xs mt-0.5" style={{ color:"var(--text-lo)" }}>{subtitle}</p>}
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center transition ml-4 flex-shrink-0"
@@ -169,8 +193,8 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size="
             <X size={15}/>
           </button>
         </div>
-        <div className="overflow-y-auto flex-1 p-6 space-y-4">{children}</div>
-        {footer && <div className="flex items-center justify-end gap-2.5 px-6 py-4 flex-shrink-0" style={{ borderTop:"1px solid var(--border)", background:"rgba(47,55,88,.02)" }}>{footer}</div>}
+        <div className={`overflow-y-auto flex-1 ${isMobile ? "px-4 py-4 space-y-3" : "px-6 py-4 space-y-4"}`}>{children}</div>
+        {footer && <div className={`flex items-center justify-end gap-2.5 flex-shrink-0 flex-wrap ${isMobile ? "px-4 py-3" : "px-6 py-4"}`} style={{ borderTop:"1px solid var(--border)", background:"rgba(47,55,88,.02)" }}>{footer}</div>}
       </div>
     </div>
   );
@@ -294,4 +318,82 @@ export function Alert({ type, children }: { type:"info"|"success"|"warning"|"err
     error:   { bg:"var(--red-bg)",    border:"rgba(239,68,68,.22)",   color:"#b91c1c", Icon:AlertCircle },
   }[type];
   return <div className="flex items-start gap-3 p-3 rounded-lg text-sm" style={{ background:cfg.bg, border:`1px solid ${cfg.border}`, color:"var(--text-mid)" }}><cfg.Icon size={15} style={{ color:cfg.color, flexShrink:0, marginTop:"1px" }}/><div>{children}</div></div>;
+}
+
+// FieldError component for validation feedback
+export function FieldError({ error, show }: { error?:string; show?:boolean }) {
+  if (!show || !error) return null;
+  return <div className="flex items-center gap-1.5 mt-1.5" style={{ color:"var(--red)", fontSize:"12px", fontWeight:"500" }}><AlertCircle size={13}/>{error}</div>;
+}
+
+// ConfirmDialog for destructive actions
+interface ConfirmDialogProps {
+  open: boolean;
+  title: string;
+  description?: string;
+  itemName?: string;
+  loading?: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+  variant?: "danger" | "warning";
+}
+export function ConfirmDialog({ open, title, description, itemName, loading, onConfirm, onCancel, variant = "danger" }: ConfirmDialogProps) {
+  if (!open) return null;
+  const textColor = variant === "danger" ? "#dc2626" : "#d97706";
+  const bgColor = variant === "danger" ? "var(--red-bg)" : "var(--yellow-bg)";
+  const borderColor = variant === "danger" ? "rgba(239,68,68,.22)" : "rgba(245,158,11,.22)";
+  const Icon = variant === "danger" ? AlertCircle : AlertCircle;
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade"
+      style={{ background:"rgba(47,55,88,.5)", backdropFilter:"blur(10px)" }}
+      onClick={e => { if(e.target===e.currentTarget) onCancel(); }}>
+      <div className="w-full rounded-2xl overflow-hidden animate-up"
+        style={{ maxWidth:"420px", background:"var(--glass-hi)", border:"1px solid var(--glass-border)", display:"flex", flexDirection:"column", boxShadow:"var(--shadow-xl)", backdropFilter:"blur(24px)" }}>
+        <div className="text-center px-6 py-8">
+          <div className="flex justify-center mb-4">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0" style={{ background:bgColor, border:`1px solid ${borderColor}` }}>
+              <Icon size={28} style={{ color:textColor }}/>
+            </div>
+          </div>
+          <h3 className="font-bold text-lg mb-2" style={{ color:"var(--navy)" }}>{title}</h3>
+          {description && <p className="text-xs mb-4" style={{ color:"var(--text-lo)" }}>{description}</p>}
+          {itemName && <p className="text-sm font-semibold p-2 rounded-lg mb-4" style={{ background:"rgba(47,55,88,.05)", color:"var(--navy)", border:"1px solid var(--border)" }}>"{itemName}"</p>}
+        </div>
+        <div className="flex items-center justify-end gap-2.5 px-6 py-4" style={{ borderTop:"1px solid var(--border)", background:"rgba(47,55,88,.02)" }}>
+          <Button onClick={onCancel}>Cancelar</Button>
+          <Button variant={variant === "danger" ? "danger" : "warning"} onClick={onConfirm} loading={loading}>Confirmar</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Breadcrumb for navigation context
+interface BreadcrumbItem {
+  label: string;
+  href?: string;
+  onClick?: () => void;
+}
+export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
+  return (
+    <div className="flex items-center gap-1.5 text-xs font-medium mb-4 overflow-x-auto pb-1" style={{ color:"var(--text-lo)" }}>
+      {items.map((item, idx) => (
+        <div key={idx} className="flex items-center gap-1.5 flex-shrink-0">
+          {idx > 0 && <span style={{ color:"var(--text-lo)" }}>/</span>}
+          {item.href || item.onClick ? (
+            <button 
+              onClick={item.onClick}
+              style={{ color:"var(--orange)", textDecoration:"none", cursor:"pointer", transition:"color .2s", fontWeight:"500" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "#f97316")}
+              onMouseLeave={e => (e.currentTarget.style.color = "var(--orange)")}>
+              {item.label}
+            </button>
+          ) : (
+            <span style={{ color:"var(--navy)", fontWeight:"600" }}>{item.label}</span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
 }

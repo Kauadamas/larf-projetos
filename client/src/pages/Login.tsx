@@ -70,7 +70,7 @@ export default function Login() {
 
         {/* Logo */}
         <div>
-          <img src="/src/assets/larflogo.svg" alt="LARF"
+          <img src="/assets/larflogo.svg" alt="LARF"
             style={{ height: "30px", width: "auto", filter: "brightness(0) invert(1)", objectFit:"contain" }} />
           <div className="text-xs mt-1 font-semibold uppercase tracking-widest" style={{ color:"rgba(255,255,255,.35)" }}>
             Plataforma de Gestão
@@ -100,7 +100,7 @@ export default function Login() {
       </div>
 
       {/* ── Right — Form panel ── */}
-      <div className="flex-1 flex items-center justify-center p-8" style={{ background:"var(--bg)" }}>
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8" style={{ background:"var(--bg)" }}>
         <div style={{ width:"100%", maxWidth:"380px" }}>
 
           {/* Mobile logo */}
@@ -134,7 +134,7 @@ export default function Login() {
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-xs font-bold uppercase tracking-widest" style={{ color:"var(--text-lo)" }}>Senha</label>
                     <button onClick={()=>{setView("reset");setResetEmail(email)}}
-                      className="text-xs font-semibold transition" style={{ color:"var(--orange)" }}
+                      className="text-xs font-semibold transition focus-visible:outline-none" style={{ color:"var(--orange)" }}
                       onMouseEnter={e=>(e.currentTarget.style.color="var(--orange-lo)")}
                       onMouseLeave={e=>(e.currentTarget.style.color="var(--orange)")}>
                       Esqueci a senha
@@ -148,7 +148,7 @@ export default function Login() {
                       onBlur={e=>{e.target.style.borderColor="var(--border-mid)";e.target.style.boxShadow="none"}}
                       onKeyDown={e=>e.key==="Enter"&&login.mutate({email:email.trim(),password})} />
                     <button type="button" onClick={()=>setShowPw(!showPw)}
-                      className="absolute transition"
+                      className="absolute transition focus-visible:outline-none"
                       style={{ right:"14px", top:"50%", transform:"translateY(-50%)", color:"var(--text-lo)" }}
                       onMouseEnter={e=>(e.currentTarget.style.color="var(--navy)")}
                       onMouseLeave={e=>(e.currentTarget.style.color="var(--text-lo)")}>
@@ -159,7 +159,7 @@ export default function Login() {
 
                 <button onClick={()=>login.mutate({email:email.trim(),password})}
                   disabled={login.isPending||!email||!password}
-                  className="w-full flex items-center justify-center gap-2.5 font-bold transition rounded-xl"
+                  className="w-full flex items-center justify-center gap-2.5 font-bold transition rounded-xl focus-visible:outline-none"
                   style={{ padding:"13px 20px", background:"var(--orange)", color:"#fff", fontSize:"15px", opacity:login.isPending||!email||!password ? .55 : 1, boxShadow: login.isPending||!email||!password ? "none" : "var(--shadow-orange)" }}
                   onMouseEnter={e=>{if(!login.isPending&&email&&password)(e.currentTarget as HTMLElement).style.background="var(--orange-lo)"}}
                   onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background="var(--orange)"}}>
@@ -178,7 +178,7 @@ export default function Login() {
           ) : (
             <div className="animate-up">
               <button onClick={()=>{setView("login");setResetSent(false)}}
-                className="flex items-center gap-1.5 text-sm font-semibold mb-6 transition"
+                className="flex items-center gap-1.5 text-sm font-semibold mb-6 transition focus-visible:outline-none"
                 style={{ color:"var(--text-lo)" }}
                 onMouseEnter={e=>(e.currentTarget.style.color="var(--navy)")}
                 onMouseLeave={e=>(e.currentTarget.style.color="var(--text-lo)")}>
@@ -209,7 +209,7 @@ export default function Login() {
                   </div>
                   <button onClick={()=>resetReq.mutate({email:resetEmail})}
                     disabled={resetReq.isPending||!resetEmail}
-                    className="w-full flex items-center justify-center gap-2 font-bold rounded-xl transition"
+                    className="w-full flex items-center justify-center gap-2 font-bold rounded-xl transition focus-visible:outline-none"
                     style={{ padding:"13px 20px", background:"var(--orange)", color:"#fff", fontSize:"15px", opacity:resetReq.isPending ? .6 : 1, boxShadow:"var(--shadow-orange)" }}>
                     {resetReq.isPending && <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"/>}
                     Enviar instruções

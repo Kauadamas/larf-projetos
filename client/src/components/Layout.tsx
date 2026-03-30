@@ -55,7 +55,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     }}>
       {/* Logo block */}
       <div className="flex items-center justify-between px-4 py-3 md:py-4" style={{ borderBottom: "1px solid rgba(255,255,255,.08)", flexShrink: 0 }}>
-        <img src="/src/assets/larflogo.svg" alt="LARF" style={{ height: "24px", width: "auto", maxWidth: "120px", filter: "brightness(0) invert(1)", objectFit: "contain" }} />
+        <img src="/assets/larflogo.svg" alt="LARF" style={{ height: "24px", width: "auto", maxWidth: "120px", filter: "brightness(0) invert(1)", objectFit: "contain" }} />
         {sidebarOpen && typeof window !== 'undefined' && window.innerWidth < 768 && (
           <button onClick={() => setSidebarOpen(false)} className="md:hidden">
             <X size={18} style={{ color: "#fff" }} />
@@ -76,7 +76,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           const count = item.badge ? badges[item.badge] : null;
           return (
             <button key={item.href} onClick={() => handleNavClick(item.href)}
-              className="w-full flex items-center gap-2 md:gap-2.5 px-2.5 md:px-3 py-2 md:py-2.5 rounded-lg md:rounded-xl mb-0.5 transition text-left select-none text-xs md:text-sm"
+              className="w-full flex items-center gap-2 md:gap-2.5 px-2.5 md:px-3 py-2 md:py-2.5 rounded-lg md:rounded-xl mb-0.5 transition text-left select-none text-xs md:text-sm focus-visible:outline-none"
               style={{
                 fontWeight: active ? 700 : 400,
                 color: active ? "#fff" : "rgba(255,255,255,.52)",
@@ -85,7 +85,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               }}
               onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,.07)"; }}
               onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
-              <Icon size={13} strokeWidth={active ? 2.5 : 1.8} className="flex-shrink-0" />
+              <Icon size={16} strokeWidth={active ? 2.5 : 1.8} className="flex-shrink-0" />
               <span className="flex-1 truncate hidden sm:inline">{item.label}</span>
               {count !== null && count > 0 && (
                 <span className="text-xs font-bold font-mono px-1 md:px-1.5 py-0.5 rounded-full flex-shrink-0 hidden sm:inline" style={{ background: "rgba(255,122,0,.28)", color: "#FFB066", fontSize: "8px" }}>
@@ -99,15 +99,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div style={{ height: "1px", background: "rgba(255,255,255,.07)", margin: "8px 12px" }} />
 
         {isAdmin && (
-          <button onClick={() => handleNavClick("/admin/users")} className="w-full flex items-center gap-2 md:gap-2.5 px-2.5 md:px-3 py-2 md:py-2.5 rounded-lg md:rounded-xl mb-0.5 transition text-left text-xs md:text-sm"
+          <button onClick={() => handleNavClick("/admin/users")} className="w-full flex items-center gap-2 md:gap-2.5 px-2.5 md:px-3 py-2 md:py-2.5 rounded-lg md:rounded-xl mb-0.5 transition text-left text-xs md:text-sm focus-visible:outline-none"
             style={{ fontWeight: location === "/admin/users" ? 700 : 400, color: location === "/admin/users" ? "#fff" : "rgba(255,255,255,.52)", background: location === "/admin/users" ? "rgba(255,122,0,.22)" : "transparent" }}>
-            <Settings size={13} strokeWidth={1.8} className="flex-shrink-0" />
+            <Settings size={16} strokeWidth={1.8} className="flex-shrink-0" />
             <span className="flex-1 truncate hidden sm:inline">Usuários</span>
           </button>
         )}
-        <button onClick={() => handleNavClick("/admin/tutorial")} className="w-full flex items-center gap-2 md:gap-2.5 px-2.5 md:px-3 py-2 md:py-2.5 rounded-lg md:rounded-xl transition text-left text-xs md:text-sm"
+        <button onClick={() => handleNavClick("/admin/tutorial")} className="w-full flex items-center gap-2 md:gap-2.5 px-2.5 md:px-3 py-2 md:py-2.5 rounded-lg md:rounded-xl transition text-left text-xs md:text-sm focus-visible:outline-none"
           style={{ fontWeight: location === "/admin/tutorial" ? 700 : 400, color: location === "/admin/tutorial" ? "#fff" : "rgba(255,255,255,.52)", background: location === "/admin/tutorial" ? "rgba(255,122,0,.22)" : "transparent" }}>
-          <HelpCircle size={13} strokeWidth={1.8} className="flex-shrink-0" />
+          <HelpCircle size={16} strokeWidth={1.8} className="flex-shrink-0" />
           <span className="flex-1 truncate hidden sm:inline">Tutorial</span>
           <span className="text-xs font-bold px-1 py-0.5 rounded-full hidden sm:inline" style={{ background: "rgba(255,122,0,.28)", color: "#FFB066", fontSize: "7px" }}>NOVO</span>
         </button>
@@ -116,18 +116,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* User */}
       <div className="p-2 md:p-3" style={{ borderTop: "1px solid rgba(255,255,255,.07)" }}>
         <div className="flex items-center gap-1.5 md:gap-2 p-1.5 md:p-2.5 rounded-lg md:rounded-xl" style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.08)" }}>
-          <div className="flex items-center justify-center rounded-lg text-white font-bold flex-shrink-0" style={{ width: "28px", height: "28px", background: "var(--orange)", fontSize: "11px", boxShadow: "0 2px 8px rgba(255,122,0,.40)" }}>
+          <div className="flex items-center justify-center rounded-lg text-white font-bold flex-shrink-0" style={{ width: "28px", height: "28px", background: "var(--orange)", fontSize: "11px", boxShadow: "var(--shadow-orange)" }}>
             {user?.name?.charAt(0)?.toUpperCase() || "L"}
           </div>
           <div className="flex-1 min-w-0 hidden sm:block">
             <div className="text-xs font-bold truncate" style={{ color: "#fff" }}>{user?.name || "LARF"}</div>
             <div className="truncate" style={{ color: "rgba(255,255,255,.38)", fontSize: "8px" }}>{user?.role}</div>
           </div>
-          <button onClick={logout} title="Sair" className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center rounded-lg transition flex-shrink-0"
-            style={{ color: "rgba(255,255,255,.38)" }}
-            onMouseEnter={e => (e.currentTarget.style.color = "var(--orange)")}
-            onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,.38)")}>
-            <LogOut size={12} />
+          <button onClick={logout} title="Sair" className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center rounded-lg transition flex-shrink-0 hover:bg-white/10 focus-visible:outline-none"
+            style={{ color: "rgba(255,255,255,.38)" }}>
+            <LogOut size={14} />
           </button>
         </div>
       </div>
@@ -156,18 +154,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Topbar */}
         <header className="flex items-center justify-between px-3 md:px-6 gap-2 md:gap-4 flex-shrink-0" style={{ height: "54px", background: "var(--glass-hi)", borderBottom: "1px solid var(--border)", backdropFilter: "blur(12px)", boxShadow: "var(--shadow-xs)" }}>
           <div className="flex items-center gap-1 md:gap-2 min-w-0 flex-1">
-            <button className="md:hidden p-1 rounded-lg transition flex-shrink-0" onClick={() => setSidebarOpen(!sidebarOpen)} style={{ color: "var(--text-mid)" }}>
-              <Menu size={16} />
+            <button className="md:hidden p-2 rounded-lg transition flex-shrink-0 focus-visible:outline-none" onClick={() => setSidebarOpen(!sidebarOpen)} style={{ color: "var(--text-mid)" }}>
+              <Menu size={18} />
             </button>
-            <img src="/src/assets/larflogo.svg" alt="LARF" className="h-4 md:hidden flex-shrink-0" style={{ filter: "brightness(0) invert(1)", maxWidth: "80px" }} />
+            <img src="/assets/larflogo.svg" alt="LARF" className="h-4 md:hidden flex-shrink-0" style={{ filter: "brightness(0) invert(1)", maxWidth: "80px" }} />
             <span className="font-semibold text-xs md:text-sm hidden md:inline text-nowrap" style={{ color: "var(--text-lo)" }}>LARF</span>
             <ChevronRight size={12} className="hidden md:block flex-shrink-0" style={{ color: "var(--border-hi)" }} />
             <span className="font-bold text-xs md:text-base truncate" style={{ color: "var(--navy)" }}>{pageTitle}</span>
           </div>
-          <button className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center transition flex-shrink-0" style={{ color: "var(--text-lo)" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--navy-alpha)"; (e.currentTarget as HTMLElement).style.color = "var(--navy)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.color = "var(--text-lo)"; }}>
-            <Bell size={14} />
+          <button className="w-8 h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center transition flex-shrink-0 hover:bg-white/10 focus-visible:outline-none" style={{ color: "var(--text-lo)" }}>
+            <Bell size={16} />
           </button>
         </header>
         <main className="flex-1 overflow-y-auto">{children}</main>

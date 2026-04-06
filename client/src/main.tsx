@@ -6,6 +6,10 @@ import App from "./App";
 import { trpc, getTrpcClient } from "./lib/trpc";
 import "./index.css";
 
+// Apply saved theme immediately to avoid flash
+const savedTheme = localStorage.getItem("larf_theme");
+if (savedTheme === "light") document.documentElement.classList.add("light");
+
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
 });

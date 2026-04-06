@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 function getInitial(): boolean {
   try {
@@ -6,14 +6,14 @@ function getInitial(): boolean {
     if (saved === "true") return true;
     if (saved === "false") return false;
   } catch {}
-  return false; // expanded by default
+  return false; // aberto por padrão
 }
 
 export function useSidebar() {
   const [collapsed, setCollapsedState] = useState<boolean>(getInitial);
 
   function setCollapsed(val: boolean) {
-    localStorage.setItem("larf_sidebar_collapsed", String(val));
+    try { localStorage.setItem("larf_sidebar_collapsed", String(val)); } catch {}
     setCollapsedState(val);
   }
 

@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { trpc } from "../lib/trpc";
 import { toast } from "sonner";
 import { Eye, EyeOff, ArrowRight, Lock, Shield, Users, BarChart3 } from "lucide-react";
+import larfLogo from "../assets/larflogo.svg";
 
 function Feature({ icon: Icon, text }: { icon: React.ComponentType<any>; text: string }) {
   return (
@@ -70,7 +71,7 @@ export default function Login() {
 
         {/* Logo */}
         <div>
-          <img src="/assets/larflogo.svg" alt="LARF"
+          <img src={larfLogo} alt="LARF"
             style={{ height: "30px", width: "auto", filter: "brightness(0) invert(1)", objectFit:"contain" }} />
           <div className="text-xs mt-1 font-semibold uppercase tracking-widest" style={{ color:"rgba(255,255,255,.35)" }}>
             Plataforma de Gestão

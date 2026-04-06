@@ -1,47 +1,82 @@
 import { useState, useEffect, useRef } from "react";
 import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import { fmtDate, today } from "../../lib/utils";
-import { PageHeader, Card, CardHeader, CardTitle, CardBody, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState } from "../../components/UI";
+import { PageHeader, Card, CardHeader, CardTitle, CardBody, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, ConfirmDialog } from "../../components/UI";
 
 type FormData = { projectId: string; date: string; hours: string; description: string; billable: "1" | "0" };
 const empty: FormData = { projectId: "", date: today(), hours: "", description: "", billable: "1" };
 
+const TIMER_KEY = "larf_timer";
+
+function loadTimer(): { startedAt: number; projectId: string } | null {
+  try {
+    const raw = localStorage.getItem(TIMER_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
 export default function Time() {
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState<FormData>(empty);
-  const [running, setRunning] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number } | null>(null);
   const [seconds, setSeconds] = useState(0);
   const [timerProject, setTimerProject] = useState("");
+  const [running, setRunning] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const startRef = useRef<number>(0);
   const utils = trpc.useUtils();
 
   const { data: entries = [] } = trpc.time.list.useQuery();
   const { data: projects = [] } = trpc.projects.list.useQuery();
-  const create = trpc.time.create.useMutation({ onSuccess: () => { toast.success("Horas registradas!"); utils.time.list.invalidate(); utils.dashboard.stats.invalidate(); close(); } });
-  const del = trpc.time.delete.useMutation({ onSuccess: () => { toast.success("Removida."); utils.time.list.invalidate(); utils.dashboard.stats.invalidate(); } });
+  const create = trpc.time.create.useMutation({
+    onSuccess: () => { toast.success("Horas registradas!"); utils.time.list.invalidate(); utils.dashboard.stats.invalidate(); close(); },
+  });
+  const del = trpc.time.delete.useMutation({
+    onSuccess: () => { toast.success("Removida."); utils.time.list.invalidate(); utils.dashboard.stats.invalidate(); setDeleteConfirm(null); },
+  });
 
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p.title]));
   const totalHours = entries.reduce((s, e) => s + Number(e.hours), 0);
 
   useEffect(() => {
+    const saved = loadTimer();
+    if (saved) {
+      setTimerProject(saved.projectId);
+      setRunning(true);
+      setSeconds(Math.floor((Date.now() - saved.startedAt) / 1000));
+      intervalRef.current = setInterval(() => {
+        const s = loadTimer();
+        if (s) setSeconds(Math.floor((Date.now() - s.startedAt) / 1000));
+      }, 1000);
+    }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
   function toggleTimer() {
-    if (running) {
-      clearInterval(intervalRef.current!); intervalRef.current = null;
+    const saved = loadTimer();
+    if (saved) {
+      clearInterval(intervalRef.current!);
+      intervalRef.current = null;
+      localStorage.removeItem(TIMER_KEY);
       setRunning(false);
-      const h = Math.max(0.25, Math.round(seconds / 900) * 0.25);
-      if (h > 0 && timerProject) {
-        create.mutate({ projectId: parseInt(timerProject), date: today(), hours: String(h), description: "Via timer", billable: true });
-      } else if (!timerProject) toast.error("Selecione um projeto antes de parar o timer");
+      const elapsed = Math.floor((Date.now() - saved.startedAt) / 1000);
+      const h = Math.max(0.25, Math.round(elapsed / 900) * 0.25);
+      if (saved.projectId) {
+        create.mutate({ projectId: parseInt(saved.projectId), date: today(), hours: String(h), description: "Via timer", billable: true });
+      } else {
+        toast.error("Nenhum projeto selecionado");
+      }
       setSeconds(0);
     } else {
-      startRef.current = Date.now() - seconds * 1000;
-      intervalRef.current = setInterval(() => setSeconds(Math.floor((Date.now() - startRef.current) / 1000)), 1000);
+      if (!timerProject) { toast.error("Selecione um projeto antes de iniciar"); return; }
+      const startedAt = Date.now();
+      localStorage.setItem(TIMER_KEY, JSON.stringify({ startedAt, projectId: timerProject }));
       setRunning(true);
+      intervalRef.current = setInterval(() => {
+        setSeconds(Math.floor((Date.now() - startedAt) / 1000));
+      }, 1000);
     }
   }
 
@@ -53,7 +88,8 @@ export default function Time() {
   }
 
   function close() { setModal(false); }
-  const set = (k: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
+  const set = (k: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+    setForm(f => ({ ...f, [k]: e.target.value }));
 
   function save() {
     if (!form.projectId) { toast.error("Selecione um projeto"); return; }
@@ -67,7 +103,6 @@ export default function Time() {
         <Button variant="primary" onClick={() => { setForm(empty); setModal(true); }}>+ Registrar</Button>
       </PageHeader>
 
-      {/* Timer Card */}
       <Card className="mb-5">
         <CardBody>
           <div className="flex items-center gap-6 flex-wrap">
@@ -79,7 +114,7 @@ export default function Time() {
               </div>
             </div>
             <div className="flex items-center gap-3 ml-auto flex-wrap">
-              <Select value={timerProject} onChange={e => setTimerProject(e.target.value)} className="w-56 text-sm">
+              <Select value={timerProject} onChange={e => setTimerProject(e.target.value)} className="w-56 text-sm" disabled={running}>
                 <option value="">— Selecione o projeto —</option>
                 {projects.filter(p => p.status === "em_andamento").map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
               </Select>
@@ -91,7 +126,6 @@ export default function Time() {
         </CardBody>
       </Card>
 
-      {/* Entries */}
       <Card>
         <CardHeader>
           <CardTitle>Entradas — {totalHours.toFixed(1)}h total</CardTitle>
@@ -108,7 +142,7 @@ export default function Time() {
                   <Td><span className="font-mono font-bold" style={{ color: "var(--accent)" }}>{e.hours}h</span></Td>
                   <Td>{e.billable ? <Badge status="ativo" /> : <Badge status="inativo" />}</Td>
                   <Td>
-                    <Button size="sm" variant="danger" title="Remover" onClick={() => { if (confirm("Remover?")) del.mutate({ id: e.id }); }} icon={<Trash2 size={14} />} />
+                    <Button size="sm" variant="danger" title="Remover" onClick={() => setDeleteConfirm({ id: e.id })} icon={<Trash2 size={14} />} />
                   </Td>
                 </Tr>
               ))}
@@ -139,6 +173,16 @@ export default function Time() {
         </div>
         <FormGroup label="Descrição do Trabalho"><Textarea value={form.description} onChange={set("description")} placeholder="O que foi feito nessas horas?" /></FormGroup>
       </Modal>
+
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="Remover Entrada?"
+        description="Esta entrada de horas será removida permanentemente."
+        loading={del.isPending}
+        onConfirm={() => deleteConfirm && del.mutate({ id: deleteConfirm.id })}
+        onCancel={() => setDeleteConfirm(null)}
+        variant="danger"
+      />
     </div>
   );
 }

@@ -168,22 +168,16 @@ export function FormGrid({ children, cols=2 }: { children:ReactNode; cols?: 1|2|
 interface ModalProps { open:boolean; onClose:()=>void; title:string; children:ReactNode; footer?:ReactNode; size?:"sm"|"md"|"lg"|"xl"; subtitle?:string }
 export function Modal({ open, onClose, title, subtitle, children, footer, size="md" }: ModalProps) {
   if (!open) return null;
-  
-  // Responsive size: full width on mobile, fixed width on desktop
-  const maxW = { sm:"400px", md:"540px", lg:"700px", xl:"860px" };
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-  const responsiveSize = isMobile ? "100%" : maxW[size];
-  const mobilePadding = isMobile ? "p-3" : "p-4";
-  
+  const maxW = { sm:"400px", md:"540px", lg:"700px", xl:"860px" }[size];
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade"
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center md:p-4 animate-fade"
       style={{ background:"rgba(47,55,88,.5)", backdropFilter:"blur(10px)" }}
       onClick={e => { if(e.target===e.currentTarget) onClose(); }}>
-      <div className="w-full rounded-2xl overflow-hidden animate-up flex flex-col"
-        style={{ maxWidth:responsiveSize, maxHeight:isMobile ? "95vh" : "90vh", background:"var(--glass-hi)", border:"1px solid var(--glass-border)", boxShadow:"var(--shadow-xl)", backdropFilter:"blur(24px)" }}>
-        <div className={`flex items-start justify-between flex-shrink-0 ${isMobile ? "px-4 py-3.5" : "px-6 py-5"}`} style={{ borderBottom:"1px solid var(--border)", background:"linear-gradient(135deg,rgba(47,55,88,.03),rgba(255,122,0,.025))" }}>
+      <div className="w-full md:rounded-2xl rounded-t-2xl overflow-hidden animate-up flex flex-col"
+        style={{ maxWidth:maxW, maxHeight:"92vh", background:"var(--glass-hi)", border:"1px solid var(--glass-border)", boxShadow:"var(--shadow-xl)", backdropFilter:"blur(24px)" }}>
+        <div className="flex items-start justify-between flex-shrink-0 px-4 md:px-6 py-3.5 md:py-5" style={{ borderBottom:"1px solid var(--border)", background:"linear-gradient(135deg,rgba(47,55,88,.03),rgba(255,122,0,.025))" }}>
           <div className="flex-1 min-w-0">
-            <h3 className={`font-bold ${isMobile ? "text-lg" : "text-xl"}`} style={{ color:"var(--navy)" }}>{title}</h3>
+            <h3 className="font-bold text-lg md:text-xl" style={{ color:"var(--navy)" }}>{title}</h3>
             {subtitle && <p className="text-xs mt-0.5" style={{ color:"var(--text-lo)" }}>{subtitle}</p>}
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center transition ml-4 flex-shrink-0"
@@ -193,8 +187,8 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size="
             <X size={15}/>
           </button>
         </div>
-        <div className={`overflow-y-auto flex-1 ${isMobile ? "px-4 py-4 space-y-3" : "px-6 py-4 space-y-4"}`}>{children}</div>
-        {footer && <div className={`flex items-center justify-end gap-2.5 flex-shrink-0 flex-wrap ${isMobile ? "px-4 py-3" : "px-6 py-4"}`} style={{ borderTop:"1px solid var(--border)", background:"rgba(47,55,88,.02)" }}>{footer}</div>}
+        <div className="overflow-y-auto flex-1 px-4 md:px-6 py-4 space-y-3 md:space-y-4">{children}</div>
+        {footer && <div className="flex items-center justify-end gap-2.5 flex-shrink-0 flex-wrap px-4 md:px-6 py-3 md:py-4" style={{ borderTop:"1px solid var(--border)", background:"rgba(47,55,88,.02)" }}>{footer}</div>}
       </div>
     </div>
   );

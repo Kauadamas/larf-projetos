@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
+import { Eye, Edit2, Trash2 } from "lucide-react";
 import { fmtCurrency, fmtDate } from "../../lib/utils";
-import { PageHeader, Card, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState } from "../../components/UI";
+import { PageHeader, Card, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, ConfirmDialog } from "../../components/UI";
 
 type Item = { desc: string; qty: number; unit: string; value: number };
 type FormData = { title: string; clientId: string; projectId: string; status: string; validityDays: string; discount: string; notes: string };
@@ -15,6 +16,7 @@ export default function Proposals() {
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<FormData>(empty);
   const [items, setItems] = useState<Item[]>([{ desc: "", qty: 1, unit: "serviço", value: 0 }]);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
   const utils = trpc.useUtils();
 
   const { data: proposals = [] } = trpc.proposals.list.useQuery();
@@ -81,7 +83,7 @@ export default function Proposals() {
                     <div className="flex gap-1.5">
                       <Button size="sm" variant="ghost" title="Visualizar" onClick={() => { setViewId(p.id); setViewModal(true); }} icon={<Eye size={14} />} />
                       <Button size="sm" variant="ghost" title="Editar" onClick={() => openEdit(p)} icon={<Edit2 size={14} />} />
-                      <Button size="sm" variant="danger" title="Excluir" onClick={() => { if (confirm("Excluir proposta?")) del.mutate({ id: p.id }); }} icon={<Trash2 size={14} />} />
+                      <Button size="sm" variant="danger" title="Excluir" onClick={() => setDeleteConfirm({ id: p.id, name: p.title })} icon={<Trash2 size={14} />} />
                     </div>
                   </Td>
                 </Tr>
@@ -199,6 +201,17 @@ export default function Proposals() {
           );
         })() : <div className="text-sm py-8 text-center" style={{ color: "var(--text-lo)" }}>Carregando...</div>}
       </Modal>
+
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="Excluir Proposta?"
+        description="Esta ação não pode ser desfeita."
+        itemName={deleteConfirm?.name}
+        loading={del.isPending}
+        onConfirm={() => deleteConfirm && del.mutate({ id: deleteConfirm.id })}
+        onCancel={() => setDeleteConfirm(null)}
+        variant="danger"
+      />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { Key, AlertOctagon, Trash2 } from "lucide-react";
 import { fmtDate } from "../../lib/utils";
 import {
   PageHeader, Card, Table, Th, Td, Tr,
-  Badge, Button, Modal, FormGroup, Input, Select, EmptyState,
+  Badge, Button, Modal, FormGroup, Input, Select, EmptyState, ConfirmDialog,
 } from "../../components/UI";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -80,11 +80,16 @@ export default function Users() {
   const [pwUserId,   setPwUserId]   = useState<number | null>(null);
   const [newPw,      setNewPw]      = useState("");
   const [tab,        setTab]        = useState<"users" | "invites" | "audit">("users");
+  const [suspendConfirm, setSuspendConfirm] = useState<{ id: number; name: string } | null>(null);
+  const [deleteUserConfirm, setDeleteUserConfirm] = useState<{ id: number; name: string } | null>(null);
   const utils = trpc.useUtils();
 
   const { data: users   = [] } = trpc.auth.users.list.useQuery();
   const { data: invites = [] } = trpc.auth.invite.list.useQuery();
   const { data: audit   = [] } = trpc.auth.users.auditLog.useQuery({ limit: 200 });
+
+  type UserItem = typeof users[number];
+  type AuditItem = typeof audit[number];
 
   const setRole  = trpc.auth.users.setRole.useMutation({ onSuccess: () => { toast.success("Papel atualizado!"); utils.auth.users.list.invalidate(); } });
   const setPw    = trpc.auth.users.setPassword.useMutation({ onSuccess: () => { toast.success("Senha alterada!"); setPwModal(false); setNewPw(""); } });
@@ -122,7 +127,7 @@ export default function Users() {
             <Table>
               <thead><tr><Th>Usuário</Th><Th>E-mail</Th><Th>Papel</Th><Th>Status</Th><Th>Último login</Th><Th></Th></tr></thead>
               <tbody>
-                {users.map((u: any) => (
+                {users.map((u: UserItem) => (
                   <Tr key={u.id}>
                     <Td>
                       <div className="flex items-center gap-2.5">
@@ -161,10 +166,10 @@ export default function Users() {
                       <div className="flex gap-1.5">
                         <Button size="sm" variant="ghost" title="Resetar senha" onClick={() => { setPwUserId(u.id); setNewPw(""); setPwModal(true); }} icon={<Key size={14} />} />
                         {u.id !== me?.id && u.status !== "suspended" && (
-                          <Button size="sm" variant="danger" title="Suspender" onClick={() => { if (confirm(`Suspender ${u.name}?`)) suspend.mutate({ userId: u.id }); }} icon={<AlertOctagon size={14} />} />
+                          <Button size="sm" variant="danger" title="Suspender" onClick={() => setSuspendConfirm({ id: u.id, name: u.name ?? "" })} icon={<AlertOctagon size={14} />} />
                         )}
                         {u.id !== me?.id && (
-                          <Button size="sm" variant="danger" title="Excluir" onClick={() => { if (confirm(`Excluir ${u.name}? Esta ação é irrevelsável.`)) del.mutate({ userId: u.id }); }} icon={<Trash2 size={14} />} />
+                          <Button size="sm" variant="danger" title="Excluir" onClick={() => setDeleteUserConfirm({ id: u.id, name: u.name ?? "" })} icon={<Trash2 size={14} />} />
                         )}
                       </div>
                     </Td>
@@ -183,19 +188,25 @@ export default function Users() {
             <Table>
               <thead><tr><Th>E-mail</Th><Th>Papel</Th><Th>Status</Th><Th>Expira em</Th><Th>Criado</Th></tr></thead>
               <tbody>
-                {invites.map((i: any) => (
+                {invites.map((i: any) => {
+                  const now = new Date();
+                  const isUsed = !!i.usedAt;
+                  const isExpired = !isUsed && new Date(i.expiresAt) < now;
+                  const isPending = !isUsed && !isExpired;
+                  return (
                   <Tr key={i.id}>
                     <Td><span className="font-medium text-sm">{i.email}</span></Td>
                     <Td><span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--glass)", border: "1px solid var(--border)" }}>{i.role}</span></Td>
                     <Td>
-                      {i.used    ? <Badge status="ativo" />      : null}
-                      {i.expired && !i.used ? <Badge status="vencido" /> : null}
-                      {i.pending ? <Badge status="pendente" />   : null}
+                      {isUsed    && <Badge status="ativo" />}
+                      {isExpired && <Badge status="vencido" />}
+                      {isPending && <Badge status="pendente" />}
                     </Td>
                     <Td><span className="text-xs" style={{ color: "var(--text-lo)" }}>{fmtDate(i.expiresAt)}</span></Td>
                     <Td><span className="text-xs" style={{ color: "var(--text-lo)" }}>{fmtDate(i.createdAt)}</span></Td>
                   </Tr>
-                ))}
+                  );
+                })}
               </tbody>
             </Table>
           ) : <EmptyState icon="document" title="Nenhum convite enviado ainda" action={<Button variant="primary" onClick={() => setInviteOpen(true)}>+ Convidar Usuário</Button>} />}
@@ -209,7 +220,7 @@ export default function Users() {
             <Table>
               <thead><tr><Th>Ação</Th><Th>Usuário ID</Th><Th>Detalhe</Th><Th>IP</Th><Th>Data</Th></tr></thead>
               <tbody>
-                {(audit as any[]).map((a: any) => (
+                {audit.map((a: AuditItem) => (
                   <Tr key={a.id}>
                     <Td><span className="font-mono text-xs" style={{ color: a.action.includes("fail") || a.action.includes("suspend") ? "var(--red)" : a.action.includes("success") ? "var(--green)" : "var(--text-lo)" }}>{a.action}</span></Td>
                     <Td><span className="text-xs font-mono">{a.userId ?? "—"}</span></Td>
@@ -242,6 +253,28 @@ export default function Users() {
           Todas as sessões ativas do usuário serão encerradas.
         </p>
       </Modal>
+
+      <ConfirmDialog
+        open={!!suspendConfirm}
+        title="Suspender Usuário?"
+        description="O usuário perderá acesso imediato à plataforma. Todas as sessões ativas serão encerradas."
+        itemName={suspendConfirm?.name}
+        loading={suspend.isPending}
+        onConfirm={() => { if (suspendConfirm) { suspend.mutate({ userId: suspendConfirm.id }); setSuspendConfirm(null); } }}
+        onCancel={() => setSuspendConfirm(null)}
+        variant="warning"
+      />
+
+      <ConfirmDialog
+        open={!!deleteUserConfirm}
+        title="Excluir Usuário?"
+        description="Esta ação é irreversível. O usuário e todos os seus dados serão permanentemente removidos."
+        itemName={deleteUserConfirm?.name}
+        loading={del.isPending}
+        onConfirm={() => { if (deleteUserConfirm) { del.mutate({ userId: deleteUserConfirm.id }); setDeleteUserConfirm(null); } }}
+        onCancel={() => setDeleteUserConfirm(null)}
+        variant="danger"
+      />
     </div>
   );
 }

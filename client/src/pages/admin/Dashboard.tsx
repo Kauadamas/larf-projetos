@@ -5,11 +5,12 @@ import { useLocation } from "wouter";
 
 export default function Dashboard() {
   const [, navigate] = useLocation();
-  const { data: stats, isLoading } = trpc.dashboard.stats.useQuery();
+  const { data: stats, isLoading, isError } = trpc.dashboard.stats.useQuery();
   const { data: clients = [] } = trpc.clients.list.useQuery();
   const { data: projects = [] } = trpc.projects.list.useQuery();
 
   if (isLoading) return <div className="p-6 text-sm" style={{ color: "var(--text-lo)" }}>Carregando...</div>;
+  if (isError) return <div className="p-6 text-sm" style={{ color: "var(--red)" }}>Erro ao carregar o dashboard. Verifique a conexão com o banco de dados.</div>;
 
   const f = stats?.financial;
   const clientMap = Object.fromEntries(clients.map(c => [c.id, c.name]));

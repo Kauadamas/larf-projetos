@@ -2,10 +2,11 @@ import { useLocation } from "wouter";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { trpc } from "../lib/trpc";
+import larfLogo from "../assets/larflogo.svg";
 import {
   LayoutGrid, Users, TrendingUp, FolderOpen, CheckSquare,
   Clock, FileText, CreditCard, DollarSign, BarChart3,
-  LogOut, Settings, HelpCircle, ChevronRight, Bell, Menu, X,
+  LogOut, Settings, HelpCircle, ChevronRight, Menu, X,
 } from "lucide-react";
 
 type NavItem = { section: string } | { label: string; icon: React.ComponentType<any>; href: string; badge?: string };
@@ -55,8 +56,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     }}>
       {/* Logo block */}
       <div className="flex items-center justify-between px-4 py-3 md:py-4" style={{ borderBottom: "1px solid rgba(255,255,255,.08)", flexShrink: 0 }}>
-        <img src="/assets/larflogo.svg" alt="LARF" style={{ height: "24px", width: "auto", maxWidth: "120px", filter: "brightness(0) invert(1)", objectFit: "contain" }} />
-        {sidebarOpen && typeof window !== 'undefined' && window.innerWidth < 768 && (
+        <img src={larfLogo} alt="LARF" style={{ height: "24px", width: "auto", maxWidth: "120px", filter: "brightness(0) invert(1)", objectFit: "contain" }} />
+        {sidebarOpen && (
           <button onClick={() => setSidebarOpen(false)} className="md:hidden">
             <X size={18} style={{ color: "#fff" }} />
           </button>
@@ -134,18 +135,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: "var(--bg)" }}>
-      {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:flex-col flex-shrink-0" style={{ width: "232px" }}>
-        <Sidebar />
-      </div>
-
-      {/* Mobile Menu Overlay */}
+      {/* Overlay — mobile only */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Mobile Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-60 md:hidden transform transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      {/* Single Sidebar — desktop always visible, mobile slide-in */}
+      <div
+        className={`fixed md:relative inset-y-0 left-0 z-50 flex flex-col flex-shrink-0 transform transition-transform duration-300
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+        style={{ width: "232px" }}
+      >
         <Sidebar />
       </div>
 
@@ -157,14 +157,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <button className="md:hidden p-2 rounded-lg transition flex-shrink-0 focus-visible:outline-none" onClick={() => setSidebarOpen(!sidebarOpen)} style={{ color: "var(--text-mid)" }}>
               <Menu size={18} />
             </button>
-            <img src="/assets/larflogo.svg" alt="LARF" className="h-4 md:hidden flex-shrink-0" style={{ filter: "brightness(0) invert(1)", maxWidth: "80px" }} />
+            <img src={larfLogo} alt="LARF" className="h-4 md:hidden flex-shrink-0" style={{ filter: "brightness(0) invert(1)", maxWidth: "80px" }} />
             <span className="font-semibold text-xs md:text-sm hidden md:inline text-nowrap" style={{ color: "var(--text-lo)" }}>LARF</span>
             <ChevronRight size={12} className="hidden md:block flex-shrink-0" style={{ color: "var(--border-hi)" }} />
             <span className="font-bold text-xs md:text-base truncate" style={{ color: "var(--navy)" }}>{pageTitle}</span>
           </div>
-          <button className="w-8 h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center transition flex-shrink-0 hover:bg-white/10 focus-visible:outline-none" style={{ color: "var(--text-lo)" }}>
-            <Bell size={16} />
-          </button>
         </header>
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>

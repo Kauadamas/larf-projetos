@@ -3,7 +3,7 @@ import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { fmtCurrency, fmtDate, today } from "../../lib/utils";
-import { PageHeader, Card, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, KpiCard } from "../../components/UI";
+import { PageHeader, Card, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, KpiCard, ConfirmDialog } from "../../components/UI";
 
 const CATEGORIES = ["Software", "Infraestrutura", "Marketing", "Equipamento", "Escritório", "Pessoal", "Impostos", "Serviços", "Outro"];
 
@@ -13,6 +13,7 @@ const empty: FormData = { description: "", category: "Software", value: "", date
 export default function Expenses() {
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState<FormData>(empty);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
   const utils = trpc.useUtils();
 
   const { data: expenses = [] } = trpc.expenses.list.useQuery();
@@ -67,7 +68,7 @@ export default function Expenses() {
                       <Td><span className="font-mono font-bold" style={{ color: "var(--red)" }}>- {fmtCurrency(e.value)}</span></Td>
                       <Td>{e.paid ? <Badge status="ativo" /> : <Badge status="pendente" />}</Td>
                       <Td>
-                        <Button size="sm" variant="danger" title="Excluir" onClick={() => { if (confirm("Excluir?")) del.mutate({ id: e.id }); }} icon={<Trash2 size={14} />} />
+                        <Button size="sm" variant="danger" title="Excluir" onClick={() => setDeleteConfirm({ id: e.id, name: e.description })} icon={<Trash2 size={14} />} />
                       </Td>
                     </Tr>
                   ))}
@@ -127,6 +128,17 @@ export default function Expenses() {
         </div>
         <FormGroup label="Observações"><Textarea value={form.notes} onChange={set("notes")} placeholder="Notas sobre esta despesa..." /></FormGroup>
       </Modal>
+
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="Excluir Despesa?"
+        description="Esta ação não pode ser desfeita."
+        itemName={deleteConfirm?.name}
+        loading={del.isPending}
+        onConfirm={() => deleteConfirm && del.mutate({ id: deleteConfirm.id })}
+        onCancel={() => setDeleteConfirm(null)}
+        variant="danger"
+      />
     </div>
   );
 }

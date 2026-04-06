@@ -3,7 +3,7 @@ import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
 import { Calendar } from "lucide-react";
 import { fmtCurrency, today } from "../../lib/utils";
-import { PageHeader, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, KanbanCol } from "../../components/UI";
+import { PageHeader, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, KanbanCol, ConfirmDialog } from "../../components/UI";
 
 const STAGES = [
   { k: "lead", l: "Lead", c: "var(--text-lo)" },
@@ -22,6 +22,7 @@ export default function Pipeline() {
   const [modal, setModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<FormData>(empty);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
   const utils = trpc.useUtils();
 
   const { data: cards = [] } = trpc.pipeline.list.useQuery();
@@ -93,7 +94,7 @@ export default function Pipeline() {
         footer={
           <>
             <Button onClick={close}>Cancelar</Button>
-            {editId && <Button variant="danger" onClick={() => { if (confirm("Excluir?")) del.mutate({ id: editId }); }}>Excluir</Button>}
+            {editId && <Button variant="danger" onClick={() => setDeleteConfirm({ id: editId, name: form.clientName })}>Excluir</Button>}
             <Button variant="primary" onClick={save} loading={create.isPending || update.isPending}>Salvar</Button>
           </>
         }>
@@ -116,6 +117,17 @@ export default function Pipeline() {
         </div>
         <FormGroup label="Observações"><Textarea value={form.notes} onChange={set("notes")} placeholder="Contexto, próximos passos..." /></FormGroup>
       </Modal>
+
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="Excluir Oportunidade?"
+        description="Esta ação não pode ser desfeita."
+        itemName={deleteConfirm?.name}
+        loading={del.isPending}
+        onConfirm={() => { if (deleteConfirm) { del.mutate({ id: deleteConfirm.id }); setDeleteConfirm(null); close(); } }}
+        onCancel={() => setDeleteConfirm(null)}
+        variant="danger"
+      />
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import { fmtCurrency, fmtDate, isOverdue, today } from "../../lib/utils";
-import { PageHeader, Card, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, KpiCard } from "../../components/UI";
+import { PageHeader, Card, Table, Th, Td, Tr, Badge, Button, Modal, FormGroup, Input, Select, Textarea, EmptyState, KpiCard, ConfirmDialog } from "../../components/UI";
 
 type FormData = { description: string; value: string; clientId: string; projectId: string; status: string; dueDate: string; notes: string };
 const empty: FormData = { description: "", value: "", clientId: "", projectId: "", status: "pendente", dueDate: "", notes: "" };
@@ -10,6 +11,7 @@ const empty: FormData = { description: "", value: "", clientId: "", projectId: "
 export default function Invoices() {
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState<FormData>(empty);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
   const utils = trpc.useUtils();
 
   const { data: invoices = [] } = trpc.invoices.list.useQuery();
@@ -65,7 +67,7 @@ export default function Invoices() {
                       {i.status === "pendente" && (
                         <Button size="sm" variant="success" onClick={() => markPaid.mutate({ id: i.id })}>✓ Recebido</Button>
                       )}
-                      <Button size="sm" variant="danger" title="Excluir" onClick={() => { if (confirm("Excluir lançamento?")) del.mutate({ id: i.id }); }} icon={<Trash2 size={14} />} />
+                      <Button size="sm" variant="danger" title="Excluir" onClick={() => setDeleteConfirm({ id: i.id, name: i.description })} icon={<Trash2 size={14} />} />
                     </div>
                   </Td>
                 </Tr>
@@ -105,6 +107,17 @@ export default function Invoices() {
         </div>
         <FormGroup label="Observações"><Textarea value={form.notes} onChange={set("notes")} placeholder="Notas sobre este lançamento..." /></FormGroup>
       </Modal>
+
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="Excluir Lançamento?"
+        description="Esta ação não pode ser desfeita."
+        itemName={deleteConfirm?.name}
+        loading={del.isPending}
+        onConfirm={() => deleteConfirm && del.mutate({ id: deleteConfirm.id })}
+        onCancel={() => setDeleteConfirm(null)}
+        variant="danger"
+      />
     </div>
   );
 }

@@ -140,10 +140,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Single Sidebar — desktop always visible, mobile slide-in */}
+      {/* Sidebar — fixed on mobile (slide-in), static on desktop */}
       <div
-        className={`fixed md:relative inset-y-0 left-0 z-50 flex flex-col flex-shrink-0 transform transition-transform duration-300
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col flex-shrink-0 transform transition-transform duration-300
+          md:static md:translate-x-0 md:z-auto
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
         style={{ width: "232px" }}
       >
         <Sidebar />
